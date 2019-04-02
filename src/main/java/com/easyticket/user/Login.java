@@ -31,11 +31,13 @@ import org.apache.log4j.Logger;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.easyticket.Main;
 import com.easyticket.core.Api;
 import com.easyticket.core.Config;
 import com.easyticket.core.CookieStore;
 import com.easyticket.core.HeaderSotre;
 import com.easyticket.core.ORC;
+import com.easyticket.util.DateUtil;
 import com.easyticket.util.FileUtil;
 import com.easyticket.util.HttpClientUtil;
 
@@ -53,14 +55,21 @@ public class Login {
 	 * @return
 	 */
 	public boolean login() {
+		
+		if (!DateUtil.isNormalTime()) {
+			logger.info("维护时间，暂停查询");
+			return false;
+		}
+		
+		
 		// 是否需要验证码登录
 		boolean is_login_passCode = false;
-	BasicClientCookie exp = new BasicClientCookie("RAIL_EXPIRATION", "1554406202653");
+		BasicClientCookie exp = new BasicClientCookie("RAIL_EXPIRATION", "1554459488518");
 		exp.setDomain("kyfw.12306.cn");
 		exp.setPath("/");
 		cookieStore.addCookie(exp);
 		BasicClientCookie DEVICEID = new BasicClientCookie("RAIL_DEVICEID",
-				"CPRcbTKrmt2X_yVpUci_KiHcVim8PXw5WPI7jGgN-hQJV4tZB1mMoRplpPlpr-aQjSPjc1wBjlQSrZEzP3C4yjXgzAIDWqmvtZ0IonwHkeiwOo2vjxKpj5Hc2-f_ZnEDNNpL9UtEA7AfPXKqvm1nnharNiUtzx3u");
+				"EdZJSA_HxSrN1DTIOfcfC90zlIOcOvli6W7fV8t9n-RG-29RcDNEFm3H89CSREuBKuVdsF0rSrVafTiIbl6HJlVTHNuSZrr26YbxMn8wqsO83JCwNh6UV7RoF-UfWa6XD3e-ap0TbiE4om65a5n4O088KEJN8hAX");
 		DEVICEID.setDomain("kyfw.12306.cn");
 		exp.setPath("DEVICEID");
 		cookieStore.addCookie(DEVICEID);
@@ -103,11 +112,12 @@ public class Login {
 			} else {
 				logger.info("使用不需要验证码的登录流程");
 				Map<String, Object> onlineMap = this.getConf();
-				
-				if (onlineMap.get("data")!=null && JSON.parseObject(onlineMap.get("data").toString()).getString("is_login").equals("Y")) {
+
+				if (onlineMap.get("data") != null
+						&& JSON.parseObject(onlineMap.get("data").toString()).getString("is_login").equals("Y")) {
 					logger.info(String.format("帐号%s已经登录！", Config.getUserName()));
 					return true;
-				}else {
+				} else {
 					logger.info(String.format("帐号%s未登录！", Config.getUserName()));
 				}
 				getAllCookies(cookieStore);
@@ -194,7 +204,7 @@ public class Login {
 				HttpEntity loginEntity = loginResponse.getEntity();
 
 				String loginResultS = EntityUtils.toString(loginEntity);
-				System.out.println("loginResultS:" + loginResultS);
+		
 				JSONObject loginResult = JSON.parseObject(loginResultS);
 				if (!"0".equals(loginResult.getString("result_code"))) {
 					logger.info(
@@ -246,7 +256,8 @@ public class Login {
 				HttpEntity loginEntity = loginResponse.getEntity();
 				String loginResultS = EntityUtils.toString(loginEntity);
 				JSONObject obj = JSON.parseObject(loginResultS);
-				if(StringUtils.isNoneBlank(obj.getString("data")) && obj.getJSONObject("data").getString("loginCheck").equals("Y")){
+				if (StringUtils.isNoneBlank(obj.getString("data"))
+						&& obj.getJSONObject("data").getString("loginCheck").equals("Y")) {
 					HttpUriRequest userLogin = RequestBuilder.post().setUri(Api.userLogin).addHeader(headers[0])
 							.addHeader(headers[1]).addHeader(headers[2]).addHeader(headers[3]).addHeader(headers[4])
 							.addHeader(headers[5]).addHeader(headers[6]).addParameter("_json_att", "").build();
@@ -257,9 +268,9 @@ public class Login {
 					if (statusCode == 302) {
 						EntityUtils.consume(response.getEntity());
 						HttpUriRequest reload = RequestBuilder.get()// .post()
-								.setUri(Api.baseUrl + "/otn/passport?redirect=/otn/login/userLogin").addHeader(headers[0])
-								.addHeader(headers[1]).addHeader(headers[2]).addHeader(headers[3]).addHeader(headers[4])
-								.addHeader(headers[5]).addHeader(headers[6]).build();
+								.setUri(Api.baseUrl + "/otn/passport?redirect=/otn/login/userLogin")
+								.addHeader(headers[0]).addHeader(headers[1]).addHeader(headers[2]).addHeader(headers[3])
+								.addHeader(headers[4]).addHeader(headers[5]).addHeader(headers[6]).build();
 
 						response = httpclient.execute(reload);
 						statusCode = response.getStatusLine().getStatusCode();
@@ -284,13 +295,15 @@ public class Login {
 				if ("0".equalsIgnoreCase(onlineMap.get("result_code") + "")) {
 					logger.info(String.format("再次校验登陆状态，帐号%s已经登录！", Config.getUserName()));
 					tk = onlineMap.get("newapptk").toString();
-					
+
 				} else {
 					logger.info(String.format("再次校验登陆状态，帐号%s未登录！", Config.getUserName()));
 					return false;
 				}
 			}
-			/*logger.info(String.format("帐号%s准备开始登录！", Config.getUserName()));*/
+			/*
+			 * logger.info(String.format("帐号%s准备开始登录！", Config.getUserName()));
+			 */
 			headers[2] = new BasicHeader("Referer", "https://kyfw.12306.cn/otn/leftTicket/init");
 			getAllCookies(cookieStore);
 			logger.info("获取newapptk成功，newapptk：" + tk);
@@ -305,7 +318,6 @@ public class Login {
 				if (statusCode == 200) {
 					HttpEntity entity = response.getEntity();
 					String jsonStr = EntityUtils.toString(entity);
-					System.out.println("entity " + jsonStr);
 					Map<String, String> jsonObject = JSON.parseObject(jsonStr, Map.class);
 					logger.info(String.format("校验通过：%s", jsonObject.get("username")));
 					this.getAllCookies(this.cookieStore);
@@ -341,14 +353,15 @@ public class Login {
 
 		} else {
 			Map<String, Object> onlineMap = this.getConf();
-			if (onlineMap.get("data")!=null && JSON.parseObject(onlineMap.get("data").toString()).getString("is_login").equals("Y")) {
+			if (onlineMap.get("data") != null
+					&& JSON.parseObject(onlineMap.get("data").toString()).getString("is_login").equals("Y")) {
 				logger.info(String.format("再次校验登陆状态，帐号%s已经登录！", Config.getUserName()));
-				
+
 			} else {
 				logger.info(String.format("再次校验登陆状态，帐号%s未登录！", Config.getUserName()));
 				return false;
 			}
-			
+
 			this.getAllCookies(this.cookieStore);
 			HttpUriRequest userLogin = RequestBuilder.get().setUri(Api.userLogin).addHeader(headers[0])
 					.addHeader(headers[1]).addHeader(headers[2]).addHeader(headers[3]).addHeader(headers[4])
@@ -356,7 +369,7 @@ public class Login {
 			userLogin.addHeader("X-Requested-With", "XMLHttpRequest");
 			userLogin.addHeader("Connection", "keep-alive");
 			try {
-				CloseableHttpResponse response =httpclient.execute(userLogin);
+				CloseableHttpResponse response = httpclient.execute(userLogin);
 				int statusCode = response.getStatusLine().getStatusCode();
 				EntityUtils.consume(response.getEntity());
 
@@ -374,9 +387,10 @@ public class Login {
 				logger.info("用户登录成功");
 				// 将成功的cookie写入文件
 				writeCookies2File();
+			
 				return true;
 			} catch (Exception e) {
-				logger.error(e.getMessage(),e);
+				logger.error(e.getMessage(), e);
 			}
 
 		}
@@ -441,7 +455,7 @@ public class Login {
 	}
 
 	public Map<String, Object> getConf() {
-	
+
 		try {
 			HttpPost confRequest = new HttpPost(Api.conf);
 			confRequest.setHeader("Host", HeaderSotre.host);
@@ -453,12 +467,12 @@ public class Login {
 
 			HttpEntity confEntity = confresponse.getEntity();
 			String confeResult = EntityUtils.toString(confEntity, "UTF-8");
-			return JSON.parseObject(confeResult,Map.class);
+			return JSON.parseObject(confeResult, Map.class);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return null; 
-	
+		return null;
+
 	}
 
 	public void getdeviceId() {
@@ -479,7 +493,6 @@ public class Login {
 			HttpEntity entity = response.getEntity();
 
 			String content = EntityUtils.toString(entity, "UTF-8");
-			System.out.println(content);
 		} catch (Exception e) {
 			logger.error("获取deviceId失败,", e);
 		}
@@ -513,7 +526,7 @@ public class Login {
 		List<Cookie> cookies = cookieStore.getCookies();
 		if (!cookies.isEmpty()) {
 			for (int i = 0; i < cookies.size(); i++) {
-				//System.out.println("- " + cookies.get(i).toString());
+				// System.out.println("- " + cookies.get(i).toString());
 			}
 		}
 	}
@@ -526,7 +539,7 @@ public class Login {
 		List<Cookie> cookies = cookieStore.getCookies();
 		String c = "";
 		for (int i = 0; i < cookies.size(); i++) {
-			
+
 			Cookie ck = cookies.get(i);
 			c += ck.getName() + "," + ck.getValue() + "," + ck.getDomain() + "," + ck.getPath() + ";";
 		}
@@ -534,20 +547,25 @@ public class Login {
 			c = c.substring(0, c.length() - 1);
 		FileUtil.saveAs(c, config.getCookiePath() + config.getUserName() + "_12306Session.txt");
 	}
+
 	public static void resetCookiesFile() {
 		Config config = new Config();
 		FileUtil.saveAs("", config.getCookiePath() + config.getUserName() + "_12306Session.txt");
 	}
-	
+
 	public static void resetCookieStore() {
 		cookieStore.clear();
 	}
-	
-	public static Map checkUser(){
+
+	public static Map checkUser() {
 		Map<String, Object> map = new HashMap<String, Object>();
-		HttpUriRequest getDevice = RequestBuilder.post().setUri(Api.uamtkStatic).addHeader("Host","kyfw.12306.cn")
-				.addHeader("User-Agent","Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36").addHeader("Origin","https://kyfw.12306.cn").addHeader("Referer", "https://kyfw.12306.cn/otn/leftTicket/init?linktypeid=dc").addParameter("appid", "otn").build();
-		
+		HttpUriRequest getDevice = RequestBuilder.post().setUri(Api.uamtkStatic).addHeader("Host", "kyfw.12306.cn")
+				.addHeader("User-Agent",
+						"Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36")
+				.addHeader("Origin", "https://kyfw.12306.cn")
+				.addHeader("Referer", "https://kyfw.12306.cn/otn/leftTicket/init?linktypeid=dc")
+				.addParameter("appid", "otn").build();
+
 		CloseableHttpResponse response2 = null;// httpclient.execute(getDevice);
 		try {
 			response2 = httpclient.execute(getDevice);

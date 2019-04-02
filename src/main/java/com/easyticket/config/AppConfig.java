@@ -74,7 +74,7 @@ public class AppConfig extends JFinalConfig {
 	public void configPlugin(Plugins me) {
 		QuartzPlugin quartzPlugin = new QuartzPlugin();
 		  quartzPlugin.addJob(new CheckLogin().cron("0 0/2 * * * ?"));
-		 quartzPlugin.addJob(new ShuaPiaoJob().cron("*/1 * * * * ?"));
+		// quartzPlugin.addJob(new ShuaPiaoJob().cron("*/1 * * * * ?"));
 		  me.add(quartzPlugin);
 	}
 

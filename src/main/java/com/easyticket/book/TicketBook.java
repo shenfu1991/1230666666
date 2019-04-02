@@ -89,7 +89,7 @@ import com.easyticket.util.HttpClientUtil;
  * 下单参考 ：https://www.jianshu.com/p/6b1f94e32713 和
  * http://www.cnblogs.com/small-bud/p/7967650.html
  */
-public class TicketBook implements Runnable {
+public class TicketBook implements Runnable{
 
 	
 
@@ -118,7 +118,6 @@ public class TicketBook implements Runnable {
 	}
 
 	@SuppressWarnings("unchecked")
-	@Override
 	public void run() {
 		
 		httpclient = HttpClientUtil.getHttpClient(cookieStore);
@@ -128,13 +127,12 @@ public class TicketBook implements Runnable {
 		String orderId = "";
 		Map<String, String> map = null;
 		try {
-			new Thread().join();
-			kaishi: while (orderId.equals("") && (map = queue.take()) != null) {
+			
+			while (orderId.equals("") && (map = queue.take()) != null) {
 				resetHeaders();
 				this.headers[2] = new BasicHeader("Referer", "https://kyfw.12306.cn/otn/leftTicket/init?linktypeid=dc");
-				
-				;// 获取的整个车次信息
-				logger.info("有票了，开始预定  "+JSON.toJSONString(map));
+
+				logger.info("开始预定 ，车次："+JSON.toJSONString(map));
 				
 				Map checUser = Login.checkUser();
 
@@ -247,14 +245,10 @@ public class TicketBook implements Runnable {
 					if (!orderId.equals("")) {
 						// 订票成功 退出程序
 						logger.info(String.format("购票成功，订单Id：%s,赶紧支付去吧",  orderId));
-						// new TipTest("","","订票成功，订单号："+orderId);
-						// ct.sendSuccessMail("购票成功，订单ID：" + orderId);
+					
 						System.exit(0);
 					} else {
-						// 重新开始查询
-						continue kaishi;
-						// ct.run();
-						// ct.reshua(headers);
+						
 
 					}
 				}
@@ -267,20 +261,17 @@ public class TicketBook implements Runnable {
 					headers[1] = new BasicHeader("Host", "kyfw.12306.cn");
 					headers[2] = new BasicHeader("Referer", "https://kyfw.12306.cn/otn/index/init");
 					new Login().login();*/
-					continue kaishi;
+					
 				}
 
 			}
-			/*
-			 * if(orderId.equals("")){//queue 取完了 还没有订单 重新刷 ct.reshua(headers);
-			 * }
-			 */
-
+			
 			Thread.sleep(200L);
 		} catch (Exception e) {
 			// e.printStackTrace();
 			logger.error("预定时出错", e);
 		}
+	
 
 	}
 
@@ -423,7 +414,7 @@ public class TicketBook implements Runnable {
 		CloseableHttpResponse response = null;
 		Login.getAllCookies(cookieStore);
 		try {
-		
+			Thread.currentThread().sleep(500);
 			// secretStr 需要解码
 			// secretStr= URLDecoder.decode(secretStr,"utf-8");
 			Header[] headers = new BasicHeader[6];

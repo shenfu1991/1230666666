@@ -25,6 +25,7 @@ import org.apache.log4j.Logger;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.easyticket.Main;
 import com.easyticket.book.TicketBook;
 import com.easyticket.core.Api;
 import com.easyticket.core.BookQueue;
@@ -101,6 +102,8 @@ public class QueryTicket implements Runnable{
 									map1.put("cdn", cdnIp);
 									BookQueue.bookQueue.put(map1);
 									logger.info(String.format("查询到车票信息，车次%s有余票， [CDN轮查 %s ]", chehao,cdnIp));
+									Main.canRun = false;
+									new TicketBook().run();
 									return ;
 									
 								}
@@ -109,6 +112,8 @@ public class QueryTicket implements Runnable{
 								map1.put("cdn", cdnIp);
 								logger.info(String.format("查询到车票信息，车次%s有余票， [CDN轮查 %s ]", chehao,cdnIp));
 								trainSeatMap.put(chehao + "_" + tobuySeat, 0);
+								Main.canRun = false;
+								new TicketBook().run();
 								return ;
 							}
 
@@ -117,14 +122,16 @@ public class QueryTicket implements Runnable{
 						
 					}else {
 						logger.info(String.format("未查询到匹配需求的车票信息 [CDN轮查 %s]", cdnIp));
+						Main.canRun = true;
 					}
 
 				} else {
 					logger.info(String.format("未查询到匹配需求的车票信息 [CDN轮查 %s]", cdnIp));
+					Main.canRun = true;
 				}
 
 			} catch (Exception e) {
-
+				Main.canRun = true;
 			}
 			
 		

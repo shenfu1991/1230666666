@@ -9,6 +9,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.log4j.Logger;
 
+import com.alibaba.fastjson.JSON;
 import com.easyticket.book.TicketBook;
 import com.easyticket.core.BookQueue;
 import com.easyticket.core.CdnManage;
@@ -21,13 +22,16 @@ import com.easyticket.query.QueryTicket;
 import com.easyticket.station.Stations;
 import com.easyticket.thread.SimpleThreadLocalPool;
 import com.easyticket.user.Login;
+import com.easyticket.util.DateUtil;
 import com.easyticket.util.HttpClientUtil;
 import com.jfinal.kit.FileKit;
 import com.jfinal.kit.PropKit;
 
+
 public class Main {
 	private static final Logger logger = Logger.getLogger(Main.class);
 	public static boolean canRun = false;
+
 	
 	public void main(){
 		//初始化线程池
@@ -52,11 +56,19 @@ public class Main {
 		}
 		Config config = new Config();
 		FileKit.delete(new File( config.getCookiePath() + config.getUserName() + "_12306Session.txt"));
-		new Login().login();
-		canRun = true;
-		if(canRun){
-			//SimpleThreadLocalPool.get().execute(new TicketBook());
+		boolean login = new Login().login();
+		try {
+			if(login){
+				Main.canRun = true;
+				while (canRun) {
+					 new QueryTicket().run();
+				}
+			}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
+		
 		
 	}
 }
