@@ -23,6 +23,10 @@
     - 基本功能开发完成
 
 
+### CDN检测 （目前是通过请求12306的js进行测试是否可用）
+![CDN轮查图片](https://images.gitee.com/uploads/images/2019/0402/192641_eabd71e1_955082.jpeg)
+
+
 ### CDN轮查
 ![CDN轮查图片](https://images.gitee.com/uploads/images/2019/0402/192316_0901e6b8_955082.png)
 
