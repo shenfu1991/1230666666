@@ -1,0 +1,26 @@
+# true 值支持热加载
+undertow.devMode=true
+
+# 避免项目中的 .class 打成 jar 包以后，同时在使用 devMode 时报的异常
+# 只要 underto.devMode 设置为 false，或者不打包就不会有异常
+# 添加此配置以后则无需关心上面这类事情，多个前缀用逗号分隔开
+undertow.hotSwapClassPrefix=
+
+
+undertow.port=8081
+undertow.host=0.0.0.0
+undertow.contextPath=/
+
+# 配置 css、js、图片等等 web 资源路径
+# "src/main/webapp" 表示从普通路径中加载资源， "classpath:static" 表示从 classpath 与 jar 包中的 static 路径下加载资源
+undertow.resourcePath=classpath:assets
+
+# io 线程数与 worker 线程数
+undertow.ioThreads=5
+undertow.workerThreads=15
+
+
+# session 过期时间，注意单位是秒
+undertow.session.timeout=1800
+# 热加载保持 session 值，避免依赖于 session 的登录型项目反复登录，默认值为 true。仅用于 devMode，生产环境无影响
+undertow.session.hotSwap=true
