@@ -50,13 +50,13 @@ public class Main {
 		}else{
 			logger.info(String.format("可用cdn%s个", CdnManage.ips.size()));
 		}
-		/*Config config = new Config();
+		Config config = new Config();
 		FileKit.delete(new File( config.getCookiePath() + config.getUserName() + "_12306Session.txt"));
 		new Login().login();
 		canRun = true;
 		if(canRun){
 			//SimpleThreadLocalPool.get().execute(new TicketBook());
-		}*/
+		}
 		
 	}
 }
