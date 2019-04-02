@@ -72,6 +72,7 @@ import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 
 import com.alibaba.fastjson.JSON;
+import com.easyticket.Main;
 import com.easyticket.core.Api;
 import com.easyticket.core.BookQueue;
 import com.easyticket.core.CdnManage;
@@ -234,7 +235,11 @@ public class TicketBook implements Runnable{
 						}
 					}
 					// getQueue 略
-					getQueueCount(globalRepeatSubmitToken, map);
+					String queueCount =  getQueueCount(globalRepeatSubmitToken, map);
+					if(queueCount.equals("N")){
+						Main.canRun = true;
+						return ;
+					}
 					// 确认订单信息
 					confirmSingle(globalRepeatSubmitToken, key_check_isChange, map.get("toBuySeat"), map);
 
@@ -261,6 +266,7 @@ public class TicketBook implements Runnable{
 					headers[1] = new BasicHeader("Host", "kyfw.12306.cn");
 					headers[2] = new BasicHeader("Referer", "https://kyfw.12306.cn/otn/index/init");
 					new Login().login();*/
+					Main.canRun = true;
 					
 				}
 
@@ -270,6 +276,7 @@ public class TicketBook implements Runnable{
 		} catch (Exception e) {
 			// e.printStackTrace();
 			logger.error("预定时出错", e);
+			Main.canRun = true;
 		}
 	
 
@@ -674,18 +681,22 @@ public class TicketBook implements Runnable{
 				Map<String, Object> rsmap = JSON.parseObject(responseBody, Map.class);
 				if (rsmap.get("status").toString().equals("true")) {
 					Map<String, Object> data = (Map<String, Object>) rsmap.get("data");
-					// 他们的代码没有加余票是否够买 我也先不加了
-					String yupiao = data.get("") + "";
+					if(rsmap.get("data")!=null && !JSON.parseObject(rsmap.get("data").toString()).getBooleanValue("submitStatus")){
+						logger.info(String.format("%s车次余票不足，加入小黑屋！", map.get("chehao")));
+						return "N";
+					}else{
+						return "Y";
+					}
 				}
 
 			} else {
-			
 				logger.info("查询排队和余票失败");
+				return "N";
 			}
 
 		} catch (Exception e) {
-			System.out.println("查询排队和余票失败" + responseBody);
 			e.printStackTrace();
+			return "N";
 		} finally {
 			try {
 				response.close();
@@ -693,7 +704,7 @@ public class TicketBook implements Runnable{
 
 			}
 		}
-		return rs;
+		return "N";
 	}
 
 	public String getGMT(String date) {
