@@ -9,6 +9,7 @@ import com.easyticket.controller.IndexController;
 import com.easyticket.core.CdnManage;
 import com.easyticket.core.CheckCdn;
 import com.easyticket.core.InitLeftQueryUrl;
+import com.easyticket.job.BlacklistJob;
 import com.easyticket.job.CheckLogin;
 import com.easyticket.job.ShuaPiaoJob;
 import com.easyticket.query.QueryTicket;
@@ -32,8 +33,6 @@ import com.jfinal.render.ViewType;
 import com.jfinal.template.Engine;
 
 public class AppConfig extends JFinalConfig {
-	
-	
 
 	private static final Logger logger = Logger.getLogger(AppConfig.class);
 
@@ -73,9 +72,9 @@ public class AppConfig extends JFinalConfig {
 	@Override
 	public void configPlugin(Plugins me) {
 		QuartzPlugin quartzPlugin = new QuartzPlugin();
-		  quartzPlugin.addJob(new CheckLogin().cron("0 0/2 * * * ?"));
-		// quartzPlugin.addJob(new ShuaPiaoJob().cron("*/1 * * * * ?"));
-		  me.add(quartzPlugin);
+		quartzPlugin.addJob(new CheckLogin().cron("0 0/2 * * * ?"));
+		quartzPlugin.addJob(new BlacklistJob().cron("*/1 * * * * ?"));
+		me.add(quartzPlugin);
 	}
 
 	@Override

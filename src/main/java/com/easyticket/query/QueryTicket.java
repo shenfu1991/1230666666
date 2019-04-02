@@ -56,8 +56,7 @@ public class QueryTicket implements Runnable{
 	public void run() {
 		
 			try {
-				Map<String, Integer> trainSeatMap = Config.getTrainSeatMap();
-				Map<String, Long> trainSeatTimeMap = Config.getTrainSeatTimeMap();
+				Map<String, String> blacklistMap = Config.getBlacklistMap();
 				long startTime = System.currentTimeMillis();
 				httpclient = HttpClientUtil.getHttpClient(cookieStore);
 				RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(3000)
@@ -82,40 +81,15 @@ public class QueryTicket implements Runnable{
 						for (Map<String, String> map1 : youpiao) {
 							String chehao = map1.get("chehao");
 							String tobuySeat = map1.get("toBuySeat");
-							Long shijian = trainSeatTimeMap.get(chehao + "_" + tobuySeat);
-							Integer cishu = trainSeatMap.get(chehao + "_" + tobuySeat);
-							if (null != shijian) {
-								if (System.currentTimeMillis() > shijian) {
-									trainSeatMap.put(chehao + "_" + tobuySeat, 0);
-									cishu = 0;
-								}
-							}
-							if (null != cishu) {
-								if (cishu > 3) {
-									// 放入小黑屋15秒
-									trainSeatTimeMap.put(chehao + "_" + tobuySeat,
-											System.currentTimeMillis() + 15 * 1000);
-									trainSeatMap.put(chehao + "_" + tobuySeat, 0);
-									logger.info(chehao + "_" + tobuySeat + "放入小黑屋15秒");
-								} else {
-									trainSeatMap.put(chehao + "_" + tobuySeat, cishu + 1);
-									map1.put("cdn", cdnIp);
-									BookQueue.bookQueue.put(map1);
-									logger.info(String.format("查询到车票信息，车次%s有余票， [CDN轮查 %s ]", chehao,cdnIp));
-									Main.canRun = false;
-									new TicketBook().run();
-									return ;
-									
-								}
-							} else {
-								BookQueue.bookQueue.put(map1);
+							String heimingdan = blacklistMap.get(chehao + "_" + tobuySeat);
+							if (heimingdan ==null ) {
 								map1.put("cdn", cdnIp);
+								BookQueue.bookQueue.put(map1);
 								logger.info(String.format("查询到车票信息，车次%s有余票， [CDN轮查 %s ]", chehao,cdnIp));
-								trainSeatMap.put(chehao + "_" + tobuySeat, 0);
 								Main.canRun = false;
 								new TicketBook().run();
 								return ;
-							}
+							} 
 
 						}
 						
@@ -222,6 +196,7 @@ public class QueryTicket implements Runnable{
 			map1.put("toStationTelecode", b[7]);
 			map1.put("train_location", b[15]);
 			map1.put("chehao", chehao);
+			map1.put("start_train_date", b[13]);
 			map.put(chehao, map1);
 
 		}

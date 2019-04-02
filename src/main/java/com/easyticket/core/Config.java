@@ -37,6 +37,8 @@ public class Config implements Serializable {
 	
 	private static Map<String, Integer> trainSeatMap = new ConcurrentHashMap<String, Integer>();
 	private static Map<String, Long> trainSeatTimeMap = new ConcurrentHashMap<String, Long>();
+	
+	private static Map<String, String> blacklistMap =  new ConcurrentHashMap<>();
 
 	public static String getQueryUrl() {
 		return queryUrl;
@@ -156,6 +158,14 @@ public class Config implements Serializable {
 
 	public static void setTrainSeatTimeMap(Map<String, Long> trainSeatTimeMap) {
 		Config.trainSeatTimeMap = trainSeatTimeMap;
+	}
+
+	public static Map<String, String> getBlacklistMap() {
+		return blacklistMap;
+	}
+
+	public static void setBlacklistMap(Map<String, String> blacklistMap) {
+		Config.blacklistMap = blacklistMap;
 	}
 
 }

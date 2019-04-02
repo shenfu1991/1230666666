@@ -83,6 +83,7 @@ import com.easyticket.core.ORC;
 import com.easyticket.core.SeatType;
 import com.easyticket.thread.SimpleThreadLocalPool;
 import com.easyticket.user.Login;
+import com.easyticket.util.DateUtil;
 import com.easyticket.util.HttpClientUtil;
 
 
@@ -133,7 +134,7 @@ public class TicketBook implements Runnable{
 				resetHeaders();
 				this.headers[2] = new BasicHeader("Referer", "https://kyfw.12306.cn/otn/leftTicket/init?linktypeid=dc");
 
-				logger.info("开始预定 ，车次："+JSON.toJSONString(map));
+				logger.info("开始预定 ，车次："+map.get("chehao"));
 				
 				Map checUser = Login.checkUser();
 
@@ -169,7 +170,7 @@ public class TicketBook implements Runnable{
 																							// N不需要
 																							// X预订失败
 						rsCode = rs;
-						System.out.println("rs:"+rs);
+
 						if (rs.equals("Y")) {
 							// 获取验证码
 							boolean checkedCode = false;
@@ -234,9 +235,16 @@ public class TicketBook implements Runnable{
 							continue redo;
 						}
 					}
+					
+					Map<String, String> blacklistMap = Config.getBlacklistMap();
 					// getQueue 略
 					String queueCount =  getQueueCount(globalRepeatSubmitToken, map);
 					if(queueCount.equals("N")){
+						String chehao = map.get("chehao");
+						String tobuySeat = map.get("toBuySeat");
+						blacklistMap.put(chehao + "_" + tobuySeat,DateUtil.getDate("yyyyMMddHHmmss"));
+					
+						logger.info(String.format("该数据为缓存，%s车次余票不足，加入小黑屋！", map.get("chehao")));
 						Main.canRun = true;
 						return ;
 					}
@@ -253,21 +261,15 @@ public class TicketBook implements Runnable{
 					
 						System.exit(0);
 					} else {
-						
+						Main.canRun = true;
+						return ;
 
 					}
 				}
 				else if (flag == 2) {
-					/*Login.resetCookiesFile();
-					Login.resetCookieStore();
-					headers = new BasicHeader[3];
-					headers[0] = new BasicHeader("User-Agent",
-							"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36");
-					headers[1] = new BasicHeader("Host", "kyfw.12306.cn");
-					headers[2] = new BasicHeader("Referer", "https://kyfw.12306.cn/otn/index/init");
-					new Login().login();*/
-					Main.canRun = true;
 					
+					Main.canRun = true;
+					return ;
 				}
 
 			}
@@ -277,6 +279,7 @@ public class TicketBook implements Runnable{
 			// e.printStackTrace();
 			logger.error("预定时出错", e);
 			Main.canRun = true;
+			return ;
 		}
 	
 
@@ -516,7 +519,6 @@ public class TicketBook implements Runnable{
 			if (response.getStatusLine().getStatusCode() == 200) {
 				HttpEntity entity = response.getEntity();
 				responseBody = EntityUtils.toString(entity);
-				System.out.println("initDc成功");
 				Pattern p = Pattern.compile("globalRepeatSubmitToken \\= '(.*?)';");
 				Matcher m = p.matcher(responseBody);
 				while (m.find()) {
@@ -682,7 +684,7 @@ public class TicketBook implements Runnable{
 				if (rsmap.get("status").toString().equals("true")) {
 					Map<String, Object> data = (Map<String, Object>) rsmap.get("data");
 					if(rsmap.get("data")!=null && !JSON.parseObject(rsmap.get("data").toString()).getBooleanValue("submitStatus")){
-						logger.info(String.format("%s车次余票不足，加入小黑屋！", map.get("chehao")));
+						
 						return "N";
 					}else{
 						return "Y";

@@ -510,35 +510,10 @@ public final class DateUtil {
 
 	public static void main(String arg[]) {
 
-		// System.out.println(getDayCompare("201707061244", "201707061245" ,
-		// DateUtil.TO_MINUTE_N));
+		System.out.println(getDayCompare("20190402222801", "20190402222810" ,
+		 "yyyyMMddHHmmss"));
 
-		System.out.println(DateUtil.format(getNextNonth("20170706124444", 12), DateUtil.TO_SECOND));
-		// System.out.println(DateUtil.getDateSFToTF("20170706124444",
-		// DateUtil.TO_SECOND_N, DateUtil.TO_CHINESE_DAY));
-		/*
-		 * String decryptToken = "1231231201711231813"; String accountId =
-		 * decryptToken.substring(0,decryptToken.length()-12); String timestamp =
-		 * decryptToken.substring(decryptToken.length()-12);
-		 * System.out.println(accountId); System.out.println(timestamp);
-		 * System.out.println(DateUtil.getDate(DateUtil.TO_MINUTE_N));
-		 * System.out.println(getDayCompare(timestamp,DateUtil.getDate(DateUtil.
-		 * TO_MINUTE_N),DateUtil.TO_MINUTE_N));
-		 */
-
-		/*
-		 * String dateStr = "20141212101223"; String tf =
-		 * DateUtil.getDateSFToTF(dateStr, DateUtil.TO_SECOND_N, DateUtil.TO_SECOND);
-		 * LOG.debug("=getDateSFToTF=" + tf);
-		 * 
-		 * System.out.println(getDate("EEE, dd MMM yyyy HH:mm:ss zzz"));
-		 * 
-		 * System.out.println(DateUtil.format(DateUtil.getPrevDay(new Date()),
-		 * DateUtil.TO_SECOND_N));
-		 * 
-		 * System.out.println(DateUtil.format(DateUtil.getNextWeek(new
-		 * Date()),DateUtil.TO_SECOND_N));
-		 */
+	
 	}
 	/**
 	 * 查看是否是正常的订票时间
@@ -559,10 +534,10 @@ public final class DateUtil {
 			Date endTime = new SimpleDateFormat(format).parse(endTimeStr);
 			if (isEffectiveDate(nowTime, startTime, endTime)) {
 				runFlag = true;
-				System.out.println("系统时间在"+startTimeStr+"点到"+endTimeStr+"点之间.");
+				
 			} else {
 				runFlag = false;
-				System.out.println("系统时间不在"+startTimeStr+"点到"+endTimeStr+"点之间.");
+			
 			}
 		} catch (java.text.ParseException e) {
 			e.printStackTrace();
