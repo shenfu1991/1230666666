@@ -11,6 +11,7 @@ import com.easyticket.core.CheckCdn;
 import com.easyticket.core.InitLeftQueryUrl;
 import com.easyticket.job.BlacklistJob;
 import com.easyticket.job.CheckLogin;
+
 import com.easyticket.job.ShuaPiaoJob;
 import com.easyticket.query.QueryTicket;
 import com.easyticket.station.Stations;
@@ -74,6 +75,7 @@ public class AppConfig extends JFinalConfig {
 		QuartzPlugin quartzPlugin = new QuartzPlugin();
 		quartzPlugin.addJob(new CheckLogin().cron("0 0/2 * * * ?"));
 		quartzPlugin.addJob(new BlacklistJob().cron("*/1 * * * * ?"));
+	
 		me.add(quartzPlugin);
 	}
 

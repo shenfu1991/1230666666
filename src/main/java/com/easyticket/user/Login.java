@@ -40,6 +40,7 @@ import com.easyticket.core.ORC;
 import com.easyticket.util.DateUtil;
 import com.easyticket.util.FileUtil;
 import com.easyticket.util.HttpClientUtil;
+import com.jfinal.kit.PropKit;
 
 public class Login {
 
@@ -64,14 +65,14 @@ public class Login {
 		
 		// 是否需要验证码登录
 		boolean is_login_passCode = false;
-		BasicClientCookie exp = new BasicClientCookie("RAIL_EXPIRATION", "1554459488518");
-		exp.setDomain("kyfw.12306.cn");
+		BasicClientCookie exp = new BasicClientCookie("RAIL_EXPIRATION", PropKit.get("RAIL_EXPIRATION"));
+		exp.setDomain(HeaderSotre.host);
 		exp.setPath("/");
 		cookieStore.addCookie(exp);
 		BasicClientCookie DEVICEID = new BasicClientCookie("RAIL_DEVICEID",
-				"EdZJSA_HxSrN1DTIOfcfC90zlIOcOvli6W7fV8t9n-RG-29RcDNEFm3H89CSREuBKuVdsF0rSrVafTiIbl6HJlVTHNuSZrr26YbxMn8wqsO83JCwNh6UV7RoF-UfWa6XD3e-ap0TbiE4om65a5n4O088KEJN8hAX");
-		DEVICEID.setDomain("kyfw.12306.cn");
-		exp.setPath("DEVICEID");
+				PropKit.get("RAIL_DEVICEID"));
+		DEVICEID.setDomain(HeaderSotre.host);
+		exp.setPath("/");
 		cookieStore.addCookie(DEVICEID);
 		httpclient = HttpClientUtil.getHttpClient(cookieStore);
 		Header[] headers = new BasicHeader[3];

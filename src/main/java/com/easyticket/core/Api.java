@@ -59,6 +59,8 @@ public interface Api {
 	String getBrowserDeviceId = baseUrl+"/otn/HttpZF/logdevice";
 	
 	String loginAysnSuggest = baseUrl+"/otn/login/loginAysnSuggest";
+	
+	String autoSubmitOrderRequest = baseUrl+"/otn/confirmPassenger/autoSubmitOrderRequest";
 
 	// 360验证码识别
 	String getCheck = "https://12306.jiedanba.cn/api/v2/getCheck";

@@ -109,14 +109,14 @@ public class TicketBook implements Runnable{
 	public void resetHeaders() {
 		this.headers = new BasicHeader[8];
 		this.headers[0] = new BasicHeader("User-Agent",
-				"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36");
-		this.headers[1] = new BasicHeader("Host", "kyfw.12306.cn");
+				HeaderSotre.userAgent);
+		this.headers[1] = new BasicHeader("Host", HeaderSotre.host);
 		this.headers[2] = new BasicHeader("Referer", "https://kyfw.12306.cn/otn/leftTicket/init?linktypeid=dc");
 		this.headers[3] = new BasicHeader("Accept", "*/*");
 		this.headers[4] = new BasicHeader("Accept-Encoding", "gzip, deflate");
 		this.headers[5] = new BasicHeader("Accept-Language", "zh-Hans-CN,zh-Hans;q=0.8,en-US;q=0.5,en;q=0.3");
 		this.headers[6] = new BasicHeader("Content-Type", "application/x-www-form-urlencoded");
-		this.headers[7] = new BasicHeader("Origin", "https://kyfw.12306.cn");
+		this.headers[7] = new BasicHeader("Origin", Api.baseUrl);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -132,7 +132,7 @@ public class TicketBook implements Runnable{
 			
 			while (orderId.equals("") && (map = queue.take()) != null) {
 				resetHeaders();
-				this.headers[2] = new BasicHeader("Referer", "https://kyfw.12306.cn/otn/leftTicket/init?linktypeid=dc");
+				this.headers[2] = new BasicHeader("Referer", Api.queryInitPage+"?linktypeid=dc");
 
 				logger.info("开始预定 ，车次："+map.get("chehao"));
 				
@@ -143,8 +143,8 @@ public class TicketBook implements Runnable{
 					Login.resetCookieStore();
 					headers = new BasicHeader[3];
 					headers[0] = new BasicHeader("User-Agent",
-							"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36");
-					headers[1] = new BasicHeader("Host", "kyfw.12306.cn");
+							HeaderSotre.userAgent);
+					headers[1] = new BasicHeader("Host", HeaderSotre.host);
 					headers[2] = new BasicHeader("Referer", "https://kyfw.12306.cn/otn/index/init");
 					new Login().login();
 				}
@@ -302,7 +302,7 @@ public class TicketBook implements Runnable{
 		List<Map<String, String>> users = null;
 		try {
 			HttpUriRequest checkCode = RequestBuilder.post()
-					.setUri(new URI("https://kyfw.12306.cn/otn/confirmPassenger/getPassengerDTOs"))
+					.setUri(new URI(Api.getPassengerDTOs))
 					.addHeader(headers[0]).addHeader(headers[1]).addHeader(headers[2]).addHeader(headers[3])
 					.addHeader(headers[4]).addHeader(headers[5]).addHeader(headers[6]).addHeader(headers[7])
 					.addParameter("REPEAT_SUBMIT_TOKEN", token).addParameter("_json_att", "").build();
@@ -364,7 +364,7 @@ public class TicketBook implements Runnable{
 					? passengerTicketStr.substring(0, passengerTicketStr.length() - 1) : passengerTicketStr;
 
 			HttpUriRequest autoSubmi = RequestBuilder.post()
-					.setUri(new URI("https://kyfw.12306.cn/otn/confirmPassenger/autoSubmitOrderRequest"))
+					.setUri(new URI(Api.autoSubmitOrderRequest))
 					.addHeader(headers[0]).addHeader(headers[1]).addHeader(headers[2]).addHeader(headers[3])
 					.addHeader(headers[4]).addHeader(headers[5]).addHeader(headers[6])
 					.addParameter("bed_level_order_num", "000000000000000000000000000000")
@@ -432,12 +432,12 @@ public class TicketBook implements Runnable{
 			headers[1] = new BasicHeader("Host", HeaderSotre.host);
 			headers[2] = new BasicHeader("Referer", "https://kyfw.12306.cn/otn/leftTicket/init?linktypeid=dc");
 			
-			headers[4] = new BasicHeader("Origin", "https://kyfw.12306.cn");
+			headers[4] = new BasicHeader("Origin", Api.baseUrl);
 			headers[3] = new BasicHeader("X-Requested-With", "XMLHttpRequest");
 			
 			
 				//String.format("http://%s/otn/leftTicket/submitOrderRequest", cdnIP)
-			String url = "https://kyfw.12306.cn/otn/leftTicket/submitOrderRequest";
+			String url = Api.submitOrderRequest;
 			//String url = String.format("http://%s/otn/leftTicket/submitOrderRequest", cdnIP);
 			HttpUriRequest checkUser = RequestBuilder.post()
 					.setUri(new URI(url))
@@ -510,7 +510,7 @@ public class TicketBook implements Runnable{
 		String responseBody = "";
 		try {
 			HttpUriRequest confirm = RequestBuilder.post()
-					.setUri(new URI("https://kyfw.12306.cn/otn/confirmPassenger/initDc")).addHeader(headers[0])
+					.setUri(Api.initDc).addHeader(headers[0])
 					.addHeader(headers[1]).addHeader(headers[2]).addHeader(headers[3]).addHeader(headers[4])
 					.addHeader(headers[5]).addHeader(headers[6]).addHeader(headers[7]).addParameter("_json_att", "")
 					.build();
@@ -586,7 +586,7 @@ public class TicketBook implements Runnable{
 			 * 
 			 */
 			HttpUriRequest checkOrder = RequestBuilder.post()
-					.setUri(new URI("https://kyfw.12306.cn/otn/confirmPassenger/checkOrderInfo")).addHeader(headers[0])
+					.setUri(new URI(Api.checkOrderInfo)).addHeader(headers[0])
 					.addHeader(headers[1]).addHeader(headers[2]).addHeader(headers[3]).addHeader(headers[4])
 					.addHeader(headers[5]).addHeader(headers[6])
 					.addParameter("bed_level_order_num", "000000000000000000000000000000")
