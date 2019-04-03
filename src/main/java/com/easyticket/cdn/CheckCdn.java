@@ -1,4 +1,4 @@
-package com.easyticket.core;
+package com.easyticket.cdn;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -23,6 +23,9 @@ import org.apache.log4j.Logger;
 
 
 import com.alibaba.fastjson.JSON;
+import com.easyticket.core.Config;
+import com.easyticket.core.HeaderSotre;
+import com.easyticket.util.DateUtil;
 import com.easyticket.util.FileUtil;
 import com.easyticket.util.HttpClientUtil;
 import com.jfinal.kit.PathKit;
@@ -41,6 +44,10 @@ public class CheckCdn implements Runnable {
 			int cdnSize = cdnIPList.size();
 			int len = 0;
 			for (int i = 0; i < cdnSize; i++) {
+				//可用CDN为20个的时候重新读取
+				if(len==20){
+					CdnManage.init();
+				}
 				String ip = cdnIPList.get(i);
 				String url = String.format("http://%s/otn/resources/js/framework/station_name.js", ip);
 				if (checkCdn(url)) {
@@ -49,6 +56,7 @@ public class CheckCdn implements Runnable {
 					writeFile(ip);
 				} 
 			}
+			CdnManage.init();
 			logger.info(String.format("CDN过滤完成，可用CDN%s个", len));
 		} catch (Exception e) {
 			logger.error("过滤CDN文件出错！", e);
@@ -65,9 +73,8 @@ public class CheckCdn implements Runnable {
 	private static boolean checkCdn(String url) {
 		try {
 			HttpGet get = new HttpGet(url);
-			get.addHeader("Host", "kyfw.12306.cn");
-			get.addHeader("User-Agent",
-					"Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36");
+			get.addHeader("Host", HeaderSotre.host);
+			get.addHeader("User-Agent",HeaderSotre.userAgent);
 			RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(3000)
 					.setConnectionRequestTimeout(1000).setSocketTimeout(3000).build();
 			get.setConfig(requestConfig);
@@ -83,7 +90,13 @@ public class CheckCdn implements Runnable {
 
 	public static void writeFile(String content) {
 		try {
-			File writeName = new File(PathKit.getWebRootPath() + "/src/main/resources/availableCdn.txt");
+			
+			File cdnFolder = new File(Config.getCookiePath()+"cdn/");
+			if(!cdnFolder.exists()){
+				cdnFolder.mkdirs();
+			}
+			
+			File writeName = new File(Config.getCookiePath()+"cdn/"+DateUtil.getDate(DateUtil.TO_DATE)+"_availableCdn.txt");
 			BufferedWriter output = new BufferedWriter(new FileWriter(writeName, true));
 			output.write(content + "\r\n");
 			output.flush();

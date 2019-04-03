@@ -11,6 +11,7 @@ import javax.net.ssl.SSLContext;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Consts;
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -107,6 +108,41 @@ public class HttpClientUtil {
 		}
 		UrlEncodedFormEntity entity = new UrlEncodedFormEntity(formparams, Consts.UTF_8);
 		HttpPost httppost = new HttpPost(url);
+		httppost.setEntity(entity);
+		CloseableHttpResponse response = null;
+		try {
+			response = getClient().execute(httppost);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		HttpEntity entity1 = response.getEntity();
+		String result = null;
+		try {
+			result = EntityUtils.toString(entity1);
+		} catch (ParseException | IOException e) {
+			logger.error(e.getMessage(), e);
+		}
+		return result;
+	}
+
+	/**
+	 * 发送HttpPost请求，参数为map
+	 * 
+	 * @param url
+	 * @param map
+	 * @return
+	 */
+	public static String sendPost(String url, Map<String, String> map, Header[] headers) {
+		List<NameValuePair> formparams = new ArrayList<NameValuePair>();
+		for (Map.Entry<String, String> entry : map.entrySet()) {
+			formparams.add(new BasicNameValuePair(entry.getKey(), entry.getValue()));
+		}
+
+		UrlEncodedFormEntity entity = new UrlEncodedFormEntity(formparams, Consts.UTF_8);
+		HttpPost httppost = new HttpPost(url);
+		for (Header header : headers) {
+			httppost.addHeader(header);
+		}
 		httppost.setEntity(entity);
 		CloseableHttpResponse response = null;
 		try {

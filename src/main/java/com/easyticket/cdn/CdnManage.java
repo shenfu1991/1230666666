@@ -1,4 +1,4 @@
-package com.easyticket.core;
+package com.easyticket.cdn;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -10,6 +10,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.easyticket.core.Config;
 import com.easyticket.util.FileUtil;
 import com.jfinal.kit.PathKit;
 
@@ -28,8 +29,12 @@ public class CdnManage {
 
 	public static void init() {
 		try {
-			String file = FileUtil.readFile(
-					new File(PathKit.class.getClassLoader().getResource("").toURI().getPath() + "availableCdn.txt"),
+			
+			File cdnFolder =new File( Config.getCookiePath()+"/cdn/");
+			if(cdnFolder.listFiles()==null){
+				return ;
+			}
+			String file = FileUtil.readFile(cdnFolder.listFiles()[cdnFolder.listFiles().length-1],
 					"UTF-8");
 			if (StringUtils.isNotBlank(file)) {
 				List<String> cdnIPList = Arrays.asList(file.split(" "));
