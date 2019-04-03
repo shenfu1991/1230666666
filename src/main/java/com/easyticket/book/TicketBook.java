@@ -72,15 +72,17 @@ import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.easyticket.Main;
+import com.easyticket.cdn.CdnManage;
 import com.easyticket.core.Api;
 import com.easyticket.core.BookQueue;
-import com.easyticket.core.CdnManage;
 import com.easyticket.core.Config;
 import com.easyticket.core.CookieStore;
 import com.easyticket.core.HeaderSotre;
 import com.easyticket.core.ORC;
 import com.easyticket.core.SeatType;
+import com.easyticket.notice.Notice;
 import com.easyticket.thread.SimpleThreadLocalPool;
 import com.easyticket.user.Login;
 import com.easyticket.util.DateUtil;
@@ -128,6 +130,7 @@ public class TicketBook implements Runnable{
 		Login login = new Login();
 		String orderId = "";
 		Map<String, String> map = null;
+		Map<String, String> blacklistMap = Config.getBlacklistMap();
 		try {
 			
 			while (orderId.equals("") && (map = queue.take()) != null) {
@@ -236,15 +239,15 @@ public class TicketBook implements Runnable{
 						}
 					}
 					
-					Map<String, String> blacklistMap = Config.getBlacklistMap();
+					
 					// getQueue 略
 					String queueCount =  getQueueCount(globalRepeatSubmitToken, map);
 					if(queueCount.equals("N")){
 						String chehao = map.get("chehao");
 						String tobuySeat = map.get("toBuySeat");
 						blacklistMap.put(chehao + "_" + tobuySeat,DateUtil.getDate("yyyyMMddHHmmss"));
-					
-						logger.info(String.format("该数据为缓存，%s车次余票不足，加入小黑屋！", map.get("chehao")));
+						logger.info(String.format("当前车次%s  排队人数已经超过余票张数，加入小黑屋！",  map.get("chehao")));
+						
 						Main.canRun = true;
 						return ;
 					}
@@ -255,10 +258,11 @@ public class TicketBook implements Runnable{
 					orderId = waitOrder(globalRepeatSubmitToken);
 					orderId = orderId.equals("null") ? "" : orderId;
 					
-					if (!orderId.equals("")) {
+					if (StringUtils.isNoneBlank(orderId)) {
 						// 订票成功 退出程序
 						logger.info(String.format("购票成功，订单Id：%s,赶紧支付去吧",  orderId));
-					
+						//发送语音通知
+						new Notice().run(String.format("code1:%s,code2:%s,code3:%s,code4:%s", map.get("start_train_date"),map.get("fromStationTelecode"),map.get("toStationTelecode"),map.get("chehao")));
 						System.exit(0);
 					} else {
 						Main.canRun = true;
@@ -268,6 +272,11 @@ public class TicketBook implements Runnable{
 				}
 				else if (flag == 2) {
 					
+					String chehao = map.get("chehao");
+					String tobuySeat = map.get("toBuySeat");
+					blacklistMap.put(chehao + "_" + tobuySeat,DateUtil.getDate("yyyyMMddHHmmss"));
+		
+					logger.info(String.format("点击预定按钮失败，%s车次加入小黑屋！", map.get("chehao")));
 					Main.canRun = true;
 					return ;
 				}
@@ -335,89 +344,7 @@ public class TicketBook implements Runnable{
 		return users;
 	}
 
-	/**
-	 * 自动预订 掉线后不能自动提交 （模拟官方订票助手）
-	 * 
-	 * @param seat
-	 *            要预定的席别
-	 */
-	public boolean autoSubmi(String secretStr, String seat) {
-		boolean flag = true;
-		CloseableHttpResponse response = null;
-		try {
-			List<Map<String, String>> userList = getPassenger("");
-			String[] users = Config.getMenbers();
-			String oldPassengerStr = "";// 姓名，证件类别，证件号码，用户类型
-			String passengerTicketStr = "";// 座位类型，0，车票类型，姓名，身份正号，电话，N（多个的话，以逗号分隔）
-			for (Map<String, String> u : userList) {
-				for (String u1 : users) {
-					if (u1.equals(u.get("passenger_name"))) {
-						oldPassengerStr += u.get("passenger_name") + "," + u.get("passenger_id_type_code") + ","
-								+ u.get("passenger_id_no") + "," + u.get("passenger_type") + "_";
-						passengerTicketStr += SeatType.getSeat(seat) + ",0,1," + u.get("passenger_name") + ","
-								+ u.get("passenger_id_type_code") + "," + u.get("passenger_id_no") + ","
-								+ u.get("mobile_no") + ",N_";
-					}
-				}
-			}
-			passengerTicketStr = passengerTicketStr.endsWith("_")
-					? passengerTicketStr.substring(0, passengerTicketStr.length() - 1) : passengerTicketStr;
 
-			HttpUriRequest autoSubmi = RequestBuilder.post()
-					.setUri(new URI(Api.autoSubmitOrderRequest))
-					.addHeader(headers[0]).addHeader(headers[1]).addHeader(headers[2]).addHeader(headers[3])
-					.addHeader(headers[4]).addHeader(headers[5]).addHeader(headers[6])
-					.addParameter("bed_level_order_num", "000000000000000000000000000000")
-					.addParameter("cancel_flag", "2").addParameter("oldPassengerStr", oldPassengerStr)
-					.addParameter("passengerTicketStr", passengerTicketStr).addParameter("purpose_codes", "ADULT")
-					.addParameter("query_from_station_name", Config.getStationLeft())
-					.addParameter("query_to_station_name", Config.getStationArrive()).addParameter("secretStr", secretStr)
-					.addParameter("tour_flag", "dc").addParameter("train_date", Config.getStationDate()).build();
-			response = httpclient.execute(autoSubmi);
-
-			Map<String, Object> rsmap = null;
-
-			HttpEntity entity = response.getEntity();
-			rsmap = JSON.parseObject(EntityUtils.toString(entity), Map.class);
-			if (rsmap.get("status").toString().equalsIgnoreCase("true")) {
-				Map<String, Object> dataMap = (Map<String, Object>) rsmap.get("data");
-				String drs = dataMap.get("result") + "";
-				String ifShowPassCode = dataMap.get("ifShowPassCode") + "";// 是否需要验证码
-																			// Y需要
-																			// N不需要
-				String ifShowPassCodeTime = dataMap.get("ifShowPassCodeTime") + "";// 不知道是否要等待这么久2801
-				if (ifShowPassCode.equals("Y")) {
-					// 验证码
-				}
-				// 获取余票信息 不是必须？
-
-				// post
-				// https://kyfw.12306.cn/otn/confirmPassenger/confirmSingleForQueueAsys
-				// 生成车票 可能会302
-
-				// get
-				// https://kyfw.12306.cn/otn/confirmPassenger/queryOrderWaitTime?random=1517580650391&tourFlag=dc&_json_att=
-				// 查询订单信息
-
-			} else {
-				System.out.println("自动预订失败");
-				flag = false;
-			}
-		} catch (Exception e) {
-			flag = false;
-			System.out.println("自动预订出错");
-			e.printStackTrace();
-		} finally {
-			try {
-				response.close();
-			} catch (Exception e) {
-
-			}
-		}
-		return flag;
-	}
-
-	
 
 	
 	public synchronized int subOrder(String secretStr,String cdnIP) {
@@ -467,7 +394,6 @@ public class TicketBook implements Runnable{
 					String errMsg = rsmap.get("messages") + "";
 					logger.info(errMsg);
 					if (errMsg.contains("未处理的订单")) {
-						// new TipTest("","","您有未处理订单，请查询");
 						logger.info("您有未完成订单，请处理");
 						System.exit(0);
 					} else if (errMsg.contains("当前时间不可以订票")) {
@@ -478,7 +404,6 @@ public class TicketBook implements Runnable{
 					logger.info("预定时候出错了：" + responseBody);
 				}
 			} else {
-				logger.info("点击预定按钮失败了，查看是否被禁或者已经退出登陆");
 				return 2;
 			}
 		} catch (Exception e) {
@@ -563,19 +488,20 @@ public class TicketBook implements Runnable{
 		String rs = "X";
 		String responseBody = "";
 		try {
-			seat = seat.replaceAll("一等座", "一等").replaceAll("二等座", "二等");
+			//seat = seat.replaceAll("一等座", "一等").replaceAll("二等座", "二等");
+		
 			List<Map<String, String>> userList = getPassenger("");
 			String[] users = Config.getMenbers();
 			String oldPassengerStr = "";// 姓名，证件类别，证件号码，用户类型
 			String passengerTicketStr = "";// 座位类型，0，车票类型，姓名，身份正号，电话，N（多个的话，以逗号分隔）
-			for (Map<String, String> u : userList) {
+			for (Map<String, String> user : userList) {
 				for (String u1 : users) {
-					if (u1.equals(u.get("passenger_name"))) {
-						oldPassengerStr += u.get("passenger_name") + "," + u.get("passenger_id_type_code") + ","
-								+ u.get("passenger_id_no") + "," + u.get("passenger_type") + "_";
-						passengerTicketStr += SeatType.getSeat(seat) + ",0,1," + u.get("passenger_name") + ","
-								+ u.get("passenger_id_type_code") + "," + u.get("passenger_id_no") + ","
-								+ u.get("mobile_no") + ",N_";
+					if (u1.equals(user.get("passenger_name"))) {
+						oldPassengerStr += user.get("passenger_name") + "," + user.get("passenger_id_type_code") + ","
+								+ user.get("passenger_id_no") + "," + user.get("passenger_type") + "_";
+						passengerTicketStr += SeatType.getSeat(seat) + ",0,1," + user.get("passenger_name") + ","
+								+ user.get("passenger_id_type_code") + "," + user.get("passenger_id_no") + ","
+								+ user.get("mobile_no") + ",N_";
 					}
 				}
 			}
@@ -682,9 +608,9 @@ public class TicketBook implements Runnable{
 				logger.info("查询排队和余票成功");
 				Map<String, Object> rsmap = JSON.parseObject(responseBody, Map.class);
 				if (rsmap.get("status").toString().equals("true")) {
-					Map<String, Object> data = (Map<String, Object>) rsmap.get("data");
-					if(rsmap.get("data")!=null && !JSON.parseObject(rsmap.get("data").toString()).getBooleanValue("submitStatus")){
-						
+					JSONObject data = JSON.parseObject(rsmap.get("data").toString());
+					if(data.getBooleanValue("op_2")){
+					
 						return "N";
 					}else{
 						return "Y";
@@ -742,7 +668,7 @@ public class TicketBook implements Runnable{
 		CloseableHttpResponse response = null;
 		String responseBody = "";
 		try {
-			seat = seat.replaceAll("一等座", "一等").replaceAll("二等座", "二等");
+			
 			List<Map<String, String>> userList = getPassenger("");
 			String[] users = Config.getMenbers();
 			String oldPassengerStr = "";// 姓名，证件类别，证件号码，用户类型
@@ -786,22 +712,24 @@ public class TicketBook implements Runnable{
 																		// false为失败
 																		// 需要查看errMsg
 					if (subStatus.equals("true")) {
+						
 						System.out.println("确认提交订单成功" + responseBody);
+						logger.info("确认提交订单成功");
 					} else {
 						String errMsg = data.get("errMsg") + "";
-						System.out.println("确认提交订单失败" + errMsg + " 返回内容：" + responseBody);
+						logger.info("确认提交订单失败" + errMsg );
 					}
-					// System.out.println("确认提交订单成功"+responseBody);
 				} else {
-					System.out.println("确认提交订单失败" + responseBody);
+					
+					logger.info("确认提交订单失败" + responseBody );
 				}
 
 			} else {
-				System.out.println("确认提交订单失败" + responseBody);
+				logger.info("确认提交订单失败" + responseBody );
 			}
 
 		} catch (Exception e) {
-			System.out.println("确认提交订单失败" + responseBody);
+			logger.info("确认提交订单失败" + responseBody );
 			e.printStackTrace();
 		} finally {
 			try {
@@ -835,20 +763,22 @@ public class TicketBook implements Runnable{
 					waitTime = data.get("waitTime") + "";
 					String waitCount = data.get("waitCount") + "";
 					orderId = data.get("orderId") + "";
-					System.out.println("前面" + waitCount + "人，需等待：" + waitTime + "");
+
+					logger.info("前面" + waitCount + "人，需等待：" + waitTime + "");
 					message = data.get("msg") + "";
 					if (null != data.get("msg")) {// 已有订单
-						System.out.println(data.get("msg"));
+						logger.info(data.get("msg"));
 						System.exit(0);
 					}
 					Thread.sleep(1000);
 				}
 			}
 			if (orderId.equals("")) {
-				System.out.println("获取订单号失败：" + message);
+				
+				logger.info("获取订单号失败：" + message);
 			}
 		} catch (Exception e) {
-			System.out.println("查询订单号失败");
+			logger.info("查询订单号失败");
 			e.printStackTrace();
 		}
 		return orderId;
