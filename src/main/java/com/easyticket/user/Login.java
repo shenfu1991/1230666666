@@ -433,7 +433,7 @@ public class Login {
 		for (Header h : headers) {
 			getDevice.addHeader(h);
 		}
-		CloseableHttpResponse response2 = null;// httpclient.execute(getDevice);
+		CloseableHttpResponse response2 = null;
 		try {
 			response2 = httpclient.execute(getDevice);
 			HttpEntity entity = response2.getEntity();
