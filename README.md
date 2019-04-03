@@ -11,7 +11,7 @@
 - [x] CDN轮查
 - [x] 自动打码下单
 - [x] 用户状态恢复
-- [ ] 电话语音通知
+- [x] 电话语音通知
 - [ ] 邮件通知
 - [ ] 动态代理IP
 - [ ] 动态秘钥，目前仅支持手动设置，后续会添加自动获取(https://kyfw.12306.cn/otn/HttpZF/GetJS)
@@ -23,6 +23,11 @@
 ## 版本
 - 19-04-02
     - 基本功能开发完成
+- 19-04-03
+    - 优化CDN检测流程
+    - 增加指定车次
+    - 优化下单流程
+    - 增加电话通知
 
 
 ### CDN检测 （目前是通过请求12306的js进行测试是否可用）
@@ -33,12 +38,12 @@
 ![CDN轮查图片](https://images.gitee.com/uploads/images/2019/0402/192316_0901e6b8_955082.png)
 
 ### 下单成功
-![下单成功图片](https://images.gitee.com/uploads/images/2019/0402/192156_e72faf78_955082.png)
+![下单成功图片](https://images.gitee.com/uploads/images/2019/0403/225923_f7c4b74f_955082.jpeg)
 
 
 ### 关于防封
-目前查询和登录操作是分开的，查询是不依赖用户是否登录，放在 A 云 T 云容易被限制 ip，建议在其它网络环境下运行
+放在 A 云 T 云容易被限制 ip，建议在其它网络环境下运行
 
 ## License
 
-[Apache License.](https://github.com/pjialin/py12306/blob/master/LICENSE)
+[Apache License.](https://www.apache.org/licenses/LICENSE-2.0)
