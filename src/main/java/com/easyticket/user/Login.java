@@ -62,6 +62,11 @@ public class Login {
 			return false;
 		}
 		
+		if(StringUtils.isBlank(Config.getUserName()) || StringUtils.isBlank(Config.getPassword())){
+			logger.info("账号或者密码未填写。");
+			System.exit(0);
+		}
+		
 		
 		// 是否需要验证码登录
 		boolean is_login_passCode = false;

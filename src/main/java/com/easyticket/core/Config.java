@@ -1,6 +1,8 @@
 package com.easyticket.core;
 
 import java.io.Serializable;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -9,36 +11,75 @@ import com.jfinal.kit.PropKit;
 @SuppressWarnings("serial")
 public class Config implements Serializable {
 
-	private static String checkLoginStatus;
+	/**
+	 * cookie保存的路径
+	 */
+	private static String cookiePath;
 
-	private static String CookiePath;
-
+	/**
+	 * 账号
+	 */
 	private static String userName;
 
+	/**
+	 * 密码
+	 */
 	private static String password;
 
-	private static String cdnEnabled;
-
+	/**
+	 * 出发时间
+	 */
 	private static String stationDate;
 
+	/**
+	 * 出发地
+	 */
 	private static String stationLeft;
 
+	/**
+	 * 目的地
+	 */
 	private static String stationArrive;
 
+	/**
+	 * 乘车人
+	 */
 	private static String[] menbers;
 
-	private static String allowLessNumber;
+	/**
+	 * 购买的席别
+	 */
+	private static String[] seats;
 
-	private  static String[] seats;
+	/**
+	 * 指定车次，不指定就是全部
+	 */
+	private static List<String> trainNumber;
 
-	private  static String[] trainNumber;
-
+	/**
+	 * 余票查询地址
+	 */
 	private static String queryUrl;
 	
+	/**
+	 * 语音通知地址
+	 */
+	private static String voiceNoticeUrl;
+	
+	/**
+	 * 语音通知 appcode
+	 */
+	private static String voiceAppcode;
+	
+	/**
+	 * 需要通知的手机号码
+	 */
+	private static String voiceNoticePhone;
+
 	private static Map<String, Integer> trainSeatMap = new ConcurrentHashMap<String, Integer>();
 	private static Map<String, Long> trainSeatTimeMap = new ConcurrentHashMap<String, Long>();
-	
-	private static Map<String, String> blacklistMap =  new ConcurrentHashMap<>();
+
+	private static Map<String, String> blacklistMap = new ConcurrentHashMap<>();
 
 	public static String getQueryUrl() {
 		return queryUrl;
@@ -48,20 +89,12 @@ public class Config implements Serializable {
 		Config.queryUrl = queryUrl;
 	}
 
-	public String getCheckLoginStatus() {
-		return PropKit.get("check.login.status");
-	}
-
-	public void setCheckLoginStatus(String checkLoginStatus) {
-		this.checkLoginStatus = checkLoginStatus;
-	}
-
-	public String getCookiePath() {
+	public static String getCookiePath() {
 		return PropKit.get("cookie.path");
 	}
 
-	public void setCookiePath(String cookiePath) {
-		CookiePath = cookiePath;
+	public static void setCookiePath(String cookiePath) {
+		cookiePath = cookiePath;
 	}
 
 	public static String getUserName() {
@@ -78,14 +111,6 @@ public class Config implements Serializable {
 
 	public void setPassword(String password) {
 		this.password = password;
-	}
-
-	public String getCdnEnabled() {
-		return PropKit.get("cdn.enabled");
-	}
-
-	public void setCdnEnabled(String cdnEnabled) {
-		this.cdnEnabled = cdnEnabled;
 	}
 
 	public static String getStationDate() {
@@ -120,14 +145,6 @@ public class Config implements Serializable {
 		Config.menbers = menbers;
 	}
 
-	public String getAllowLessNumber() {
-		return PropKit.get("allow.less.number");
-	}
-
-	public void setAllowLessNumber(String allowLessNumber) {
-		this.allowLessNumber = allowLessNumber;
-	}
-
 	public static String[] getSeats() {
 		return PropKit.get("seats").split(",");
 	}
@@ -136,11 +153,11 @@ public class Config implements Serializable {
 		Config.seats = seats;
 	}
 
-	public static String[] getTrainNumber() {
-		return PropKit.get("train.number").split(",");
+	public static List<String> getTrainNumber() {
+		return Arrays.asList(PropKit.get("train.numbers").replaceAll(" ", "").split(","));
 	}
 
-	public static void setTrainNumber(String[] trainNumber) {
+	public static void setTrainNumber(List<String> trainNumber) {
 		Config.trainNumber = trainNumber;
 	}
 
@@ -167,5 +184,31 @@ public class Config implements Serializable {
 	public static void setBlacklistMap(Map<String, String> blacklistMap) {
 		Config.blacklistMap = blacklistMap;
 	}
+
+	public static String getVoiceNoticeUrl() {
+		return PropKit.get("voice.notice.url");
+	}
+
+	public static void setVoiceNoticeUrl(String voiceNoticeUrl) {
+		Config.voiceNoticeUrl = voiceNoticeUrl;
+	}
+
+	public static String getVoiceAppcode() {
+		return PropKit.get("voice.notice.appcode");
+	}
+
+	public static void setVoiceAppcode(String voiceAppcode) {
+		Config.voiceAppcode = voiceAppcode;
+	}
+
+	public static String getVoiceNoticePhone() {
+		return PropKit.get("voice.notice.phone");
+	}
+
+	public static void setVoiceNoticePhone(String voiceNoticePhone) {
+		Config.voiceNoticePhone = voiceNoticePhone;
+	}
+	
+	
 
 }

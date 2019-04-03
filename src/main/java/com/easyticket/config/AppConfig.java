@@ -5,9 +5,9 @@ import java.util.Timer;
 import org.apache.log4j.Logger;
 
 import com.easyticket.Main;
+import com.easyticket.cdn.CdnManage;
+import com.easyticket.cdn.CheckCdn;
 import com.easyticket.controller.IndexController;
-import com.easyticket.core.CdnManage;
-import com.easyticket.core.CheckCdn;
 import com.easyticket.core.InitLeftQueryUrl;
 import com.easyticket.job.BlacklistJob;
 import com.easyticket.job.CheckLogin;

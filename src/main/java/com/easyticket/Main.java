@@ -11,9 +11,9 @@ import org.apache.log4j.Logger;
 
 import com.alibaba.fastjson.JSON;
 import com.easyticket.book.TicketBook;
+import com.easyticket.cdn.CdnManage;
+import com.easyticket.cdn.CheckCdn;
 import com.easyticket.core.BookQueue;
-import com.easyticket.core.CdnManage;
-import com.easyticket.core.CheckCdn;
 import com.easyticket.core.Config;
 import com.easyticket.core.InitLeftQueryUrl;
 import com.easyticket.core.SeatType;
@@ -42,7 +42,7 @@ public class Main {
 		Stations.init();
 		// 初始化查询地址
 		InitLeftQueryUrl.init();
-		
+		//初始化席别代码
 		SeatType.inint();
 		
 		//过滤cdn
@@ -52,6 +52,17 @@ public class Main {
 			SimpleThreadLocalPool.get().execute(new CheckCdn());
 			
 		}else{
+			//超过3天没过滤，需要重新过滤
+			File cdnFolder =new File( Config.getCookiePath()+"/cdn/");
+			if(cdnFolder.listFiles()!=null){
+				String cdnFilterDate =  cdnFolder.listFiles()[cdnFolder.listFiles().length-1].getName().split("_")[0].replaceAll("-", "");
+				logger.info("CDN上次过滤时间："+cdnFilterDate);
+				if((Integer.valueOf(DateUtil.getDate(DateUtil.TO_DATE).replaceAll("-", ""))-Integer.valueOf(cdnFilterDate))>=3){
+					logger.info("CDN超过3天为过滤，需要重新过滤！");
+					SimpleThreadLocalPool.get().execute(new CheckCdn());
+				}
+				
+			}
 			logger.info(String.format("可用cdn%s个", CdnManage.ips.size()));
 		}
 		Config config = new Config();
@@ -71,4 +82,6 @@ public class Main {
 		
 		
 	}
+	
+	
 }

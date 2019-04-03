@@ -12,6 +12,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -27,20 +28,28 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.easyticket.Main;
 import com.easyticket.book.TicketBook;
+import com.easyticket.cdn.CdnManage;
 import com.easyticket.core.Api;
 import com.easyticket.core.BookQueue;
-import com.easyticket.core.CdnManage;
 import com.easyticket.core.Config;
 import com.easyticket.core.CookieStore;
 import com.easyticket.core.HeaderSotre;
 import com.easyticket.station.Stations;
+import com.easyticket.util.DateUtil;
 import com.easyticket.util.HttpClientUtil;
+import com.jfinal.kit.PropKit;
 
 /**
  * 车票查询
  * 
  * @author lenovo
- *
+ *String chehao = map.get("chehao");
+						String tobuySeat = map.get("toBuySeat");
+						blacklistMap.put(chehao + "_" + tobuySeat,DateUtil.getDate("yyyyMMddHHmmss"));
+						logger.info(String.format("当前车次%s  排队人数已经超过余票张数，加入小黑屋！",  map.get("chehao")));
+						logger.info(String.format("该数据为缓存，%s车次余票不足，加入小黑屋！", map.get("chehao")));
+						Main.canRun = true;
+						return ;
  */
 public class QueryTicket implements Runnable{
 
@@ -57,7 +66,7 @@ public class QueryTicket implements Runnable{
 		
 			try {
 				Map<String, String> blacklistMap = Config.getBlacklistMap();
-				long startTime = System.currentTimeMillis();
+
 				httpclient = HttpClientUtil.getHttpClient(cookieStore);
 				RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(3000)
 						.setConnectionRequestTimeout(3000).setSocketTimeout(3000).build();
@@ -71,11 +80,19 @@ public class QueryTicket implements Runnable{
 					Map<String, Map<String, String>> map = new ConcurrentHashMap<String, Map<String, String>>();
 					// 解析车次信息
 					analysisTicket(arr, map);
+					
+					
 					List<String> trainNumber = new ArrayList<>();
-					Set<String> keys = map.keySet();
-					for (String key : keys) {
-						trainNumber.add(key);
+					//没有指定车次
+					if(PropKit.get("train.numbers").equals("")){
+						Set<String> keys = map.keySet();
+						for (String key : keys) {
+							trainNumber.add(key);
+						}
+					}else{
+						trainNumber = Config.getTrainNumber();
 					}
+					
 					List<Map<String, String>> youpiao = getSecretStr(map, trainNumber, Config.getSeats());
 					if (youpiao.size() > 0) {
 						for (Map<String, String> map1 : youpiao) {
@@ -88,7 +105,6 @@ public class QueryTicket implements Runnable{
 								logger.info(String.format("查询到车票信息，车次%s有余票， [CDN轮查 %s ]", chehao,cdnIp));
 								Main.canRun = false;
 								new TicketBook().run();
-								return ;
 							} 
 
 						}
@@ -178,26 +194,36 @@ public class QueryTicket implements Runnable{
 		 * 
 		 * secretStr：0
 		 */
-		for (String a : checi) {
-			Map<String, String> map1 = new ConcurrentHashMap<String, String>();
-			String[] b = a.split("\\|");
+		
+		for (String string : checi) {
+			Map<String, String> result = new ConcurrentHashMap<String, String>();
+			String[] ent = string.split("\\|");
 
-			String secret = b[0];
+			String secret = ent[0];
 			secret = URLDecoder.decode(secret);// 解码
-			String chehao = b[3];
-			map1.put("二等座", b[30]);
-			map1.put("一等座", b[31]);
-			map1.put("硬卧", b[28]);
-			map1.put("硬座", b[29]);
-			map1.put("secret", secret);
-			map1.put("leftTicket", b[12]);
-			map1.put("train_no", b[2]);
-			map1.put("fromStationTelecode", b[6]);
-			map1.put("toStationTelecode", b[7]);
-			map1.put("train_location", b[15]);
-			map1.put("chehao", chehao);
-			map1.put("start_train_date", b[13]);
-			map.put(chehao, map1);
+			String chehao = ent[3];
+			result.put("二等座", ent[30]);
+			result.put("一等座", ent[31]);
+			result.put("硬卧", ent[28]);
+			result.put("硬座", ent[29]);
+			result.put("商务座", ent[32]);
+			result.put("特等座", ent[32]);
+			result.put("高级软卧", ent[21]);
+			result.put("软卧", ent[23]);
+			result.put("软座", ent[28]);
+			result.put("无座", ent[29]);
+		
+			
+			
+			result.put("secret", secret);
+			result.put("leftTicket", ent[12]);
+			result.put("train_no", ent[2]);
+			result.put("fromStationTelecode", ent[6]);
+			result.put("toStationTelecode", ent[7]);
+			result.put("train_location", ent[15]);
+			result.put("chehao", chehao);
+			result.put("start_train_date", ent[13]);
+			map.put(chehao, result);
 
 		}
 	}
@@ -215,17 +241,17 @@ public class QueryTicket implements Runnable{
 			String[] seats) {
 		String[] xb = seats;
 		List<Map<String, String>> youpiaoList = new ArrayList<Map<String, String>>();
-		for (String c : trains) {
-			Map<String, String> xibiemap = map.get(c);
+		for (String train : trains) {
+			Map<String, String> xibiemap = map.get(train);
 			if (null != xibiemap) {
 				for (String xbie : xb) {
 					String cnt = xibiemap.get(xbie);
 					String secretStr = xibiemap.get("secret");
 					if (null != cnt && !"无".equals(cnt) && !"".equals(cnt)) {
 						if ("".equals(secretStr)) {
-							System.out.println(c + " " + xbie + "未开售");
+							System.out.println(train + " " + xbie + "未开售");
 						} else if (!"有".equals(cnt) && Integer.parseInt(cnt) < Config.getMenbers().length) {
-							System.out.println(c + " " + xbie + " 有票：" + cnt + "但是不够" + Config.getMenbers().toString()
+							System.out.println(train + " " + xbie + " 有票：" + cnt + "但是不够" + Config.getMenbers().toString()
 									+ " " + Config.getMenbers().length + "个,忽略");
 						} else {
 							xibiemap.put("toBuySeat", xbie);
