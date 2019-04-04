@@ -44,8 +44,8 @@ public class CheckCdn implements Runnable {
 			int cdnSize = cdnIPList.size();
 			int len = 0;
 			for (int i = 0; i < cdnSize; i++) {
-				//可用CDN为20个的时候重新读取
-				if(len==20){
+				//可用CDN为15个的时候重新读取
+				if(len==15){
 					CdnManage.init();
 				}
 				String ip = cdnIPList.get(i);

@@ -65,6 +65,7 @@ public class QueryTicket implements Runnable{
 	public void run() {
 		
 			try {
+				
 				Map<String, String> blacklistMap = Config.getBlacklistMap();
 
 				httpclient = HttpClientUtil.getHttpClient(cookieStore);
@@ -104,7 +105,9 @@ public class QueryTicket implements Runnable{
 								BookQueue.bookQueue.put(map1);
 								logger.info(String.format("查询到车票信息，车次%s有余票， [CDN轮查 %s ]", chehao,cdnIp));
 								Main.canRun = false;
+							
 								new TicketBook().run();
+								
 							} 
 
 						}
@@ -119,6 +122,8 @@ public class QueryTicket implements Runnable{
 					logger.info(String.format("未查询到匹配需求的车票信息 [CDN轮查 %s]", cdnIp));
 					Main.canRun = true;
 				}
+				
+				Thread.currentThread().sleep(1000);
 
 			} catch (Exception e) {
 				Main.canRun = true;

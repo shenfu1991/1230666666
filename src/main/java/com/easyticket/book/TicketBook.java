@@ -134,6 +134,7 @@ public class TicketBook implements Runnable{
 		try {
 			
 			while (orderId.equals("") && (map = queue.take()) != null) {
+				
 				resetHeaders();
 				this.headers[2] = new BasicHeader("Referer", Api.queryInitPage+"?linktypeid=dc");
 
@@ -277,6 +278,21 @@ public class TicketBook implements Runnable{
 					blacklistMap.put(chehao + "_" + tobuySeat,DateUtil.getDate("yyyyMMddHHmmss"));
 		
 					logger.info(String.format("点击预定按钮失败，%s车次加入小黑屋！", map.get("chehao")));
+					
+				
+					Map checUserLogin = Login.checkUser();
+
+					if(checUserLogin.get("data")!=null && !JSON.parseObject(checUserLogin.get("data").toString()).getBooleanValue("flag")){
+						Login.resetCookiesFile();
+						Login.resetCookieStore();
+						headers = new BasicHeader[3];
+						headers[0] = new BasicHeader("User-Agent",
+								HeaderSotre.userAgent);
+						headers[1] = new BasicHeader("Host", HeaderSotre.host);
+						headers[2] = new BasicHeader("Referer", "https://kyfw.12306.cn/otn/index/init");
+						new Login().login();
+					}
+					
 					Main.canRun = true;
 					return ;
 				}
@@ -401,7 +417,9 @@ public class TicketBook implements Runnable{
 						System.exit(0);
 					}
 				} else {
+					
 					logger.info("预定时候出错了：" + responseBody);
+					return 2;
 				}
 			} else {
 				return 2;

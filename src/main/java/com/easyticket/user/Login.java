@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Consts;
@@ -66,20 +68,12 @@ public class Login {
 			logger.info("账号或者密码未填写。");
 			System.exit(0);
 		}
-		
-		
+		httpclient = HttpClientUtil.getHttpClient(cookieStore);
+		getAllCookies(cookieStore);
 		// 是否需要验证码登录
 		boolean is_login_passCode = false;
-		BasicClientCookie exp = new BasicClientCookie("RAIL_EXPIRATION", PropKit.get("RAIL_EXPIRATION"));
-		exp.setDomain(HeaderSotre.host);
-		exp.setPath("/");
-		cookieStore.addCookie(exp);
-		BasicClientCookie DEVICEID = new BasicClientCookie("RAIL_DEVICEID",
-				PropKit.get("RAIL_DEVICEID"));
-		DEVICEID.setDomain(HeaderSotre.host);
-		exp.setPath("/");
-		cookieStore.addCookie(DEVICEID);
-		httpclient = HttpClientUtil.getHttpClient(cookieStore);
+	
+		
 		Header[] headers = new BasicHeader[3];
 		headers[0] = new BasicHeader("User-Agent", HeaderSotre.userAgent);
 		headers[1] = new BasicHeader("Host", HeaderSotre.host);
@@ -481,33 +475,8 @@ public class Login {
 
 	}
 
-	public void getdeviceId() {
-		BasicClientCookie exp = new BasicClientCookie("BIGipServerotn", "921698826.64545.0000");
-		exp.setDomain("kyfw.12306.cn");
-		exp.setPath("/");
-		cookieStore.addCookie(exp);
-		httpclient = HttpClientUtil.getHttpClient(cookieStore);
+	
 
-		HttpGet hget = new HttpGet(
-				"https://kyfw.12306.cn/otn/HttpZF/logdevice?algID=RrAeymgJIP&hashCode=pMUsJQTcY86599AwmmQjYKq86ILz21XLkZqQ22MOdsg&FMQw=0&q4f3=zh-CN&VPIf=1&custID=133&VEek=unknown&dzuS=32.0%20r0&yD16=0&EOQP=eea1c671b27b7f53fb4ed098696f3560&lEnu=3232235779&jp76=e8eea307be405778bd87bbc8fa97b889&hAqN=Win32&platform=WEB&ks0Q=2955119c83077df58dd8bb7832898892&TeRS=834x1536&tOHY=24xx864x1536&Fvje=i1l1o1s1&q5aJ=-8&wNLf=99115dfb07133750ba677d055874de87&0aew=Mozilla/5.0%20(Windows%20NT%2010.0;%20WOW64)%20AppleWebKit/537.36%20(KHTML,%20like%20Gecko)%20Chrome/56.0.2924.87%20Safari/537.36&E3gR=ed0a124813a73261b73349a4a7f2021f&timestamp=1553954405917");
-		hget.addHeader("User-Agent", HeaderSotre.userAgent);
-		hget.addHeader("Host", Api.baseUrl);
-		hget.addHeader("Referer", "https://kyfw.12306.cn/otn/index/init");
-		hget.addHeader("Upgrade-Insecure-Requests", "1");
-		try {
-			CloseableHttpResponse response = httpclient.execute(hget);
-			HttpEntity entity = response.getEntity();
-
-			String content = EntityUtils.toString(entity, "UTF-8");
-		} catch (Exception e) {
-			logger.error("获取deviceId失败,", e);
-		}
-	}
-
-	public static void main(String[] args) {
-		new Login().getdeviceId();
-
-	}
 
 	/**
 	 * 将cookie读取到cookiestore 查看是否可以用
@@ -532,7 +501,7 @@ public class Login {
 		List<Cookie> cookies = cookieStore.getCookies();
 		if (!cookies.isEmpty()) {
 			for (int i = 0; i < cookies.size(); i++) {
-				// System.out.println("- " + cookies.get(i).toString());
+				 System.out.println("- " + cookies.get(i).toString());
 			}
 		}
 	}

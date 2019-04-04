@@ -575,4 +575,18 @@ public final class DateUtil {
 			return false;
 		}
 	}
+	
+	/**
+	 * 时间戳转日期
+	 * @param s
+	 * @return
+	 */
+	public static String stampToDate(String s) {
+		String res;
+		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		long lt = new Long(s);
+		Date date = new Date(lt);
+		res = simpleDateFormat.format(date);
+		return res;
+	}
 }
