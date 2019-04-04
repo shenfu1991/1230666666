@@ -13,6 +13,8 @@ import com.easyticket.job.BlacklistJob;
 import com.easyticket.job.CheckLogin;
 
 import com.easyticket.job.ShuaPiaoJob;
+import com.easyticket.job.StartTicketJob;
+import com.easyticket.job.StopTicketJob;
 import com.easyticket.query.QueryTicket;
 import com.easyticket.station.Stations;
 import com.easyticket.thread.SimpleThreadLocalPool;
@@ -75,7 +77,8 @@ public class AppConfig extends JFinalConfig {
 		QuartzPlugin quartzPlugin = new QuartzPlugin();
 		quartzPlugin.addJob(new CheckLogin().cron("0 0/2 * * * ?"));
 		quartzPlugin.addJob(new BlacklistJob().cron("*/1 * * * * ?"));
-	
+		quartzPlugin.addJob(new StartTicketJob().cron("0 0 6 * * ?"));
+		quartzPlugin.addJob(new StopTicketJob().cron("0 0 23 * * ?"));
 		me.add(quartzPlugin);
 	}
 
