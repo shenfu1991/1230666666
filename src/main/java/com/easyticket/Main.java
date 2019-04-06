@@ -29,6 +29,7 @@ import com.easyticket.core.Api;
 import com.easyticket.core.BookQueue;
 import com.easyticket.core.Config;
 import com.easyticket.core.Device;
+import com.easyticket.core.HeaderSotre;
 import com.easyticket.core.InitLeftQueryUrl;
 import com.easyticket.core.SeatType;
 import com.easyticket.job.CheckLogin;
@@ -75,8 +76,8 @@ public class Main {
 						.replaceAll("-", "");
 				logger.info("CDN上次过滤时间：" + cdnFilterDate);
 				if ((Integer.valueOf(DateUtil.getDate(DateUtil.TO_DATE).replaceAll("-", ""))
-						- Integer.valueOf(cdnFilterDate)) >= 3) {
-					logger.info("CDN超过3天为过滤，需要重新过滤！");
+						- Integer.valueOf(cdnFilterDate)) >= 2) {
+					logger.info("CDN超过2天为过滤，需要重新过滤！");
 					SimpleThreadLocalPool.get().execute(new CheckCdn());
 				}
 
@@ -100,34 +101,27 @@ public class Main {
 
 	}
 
+	//https://kyfw.12306.cn/otn/leftTicket/query?
+	//leftTicketDTO.train_date=2019-04-07&leftTicketDTO.from_station=BJP&leftTicketDTO.to_station=TJP&purpose_codes=ADULT
 	public static void main(String[] args) {
-		System.out.println(DateUtil.stampToDate("1554704785526"));
-		
-		System.out.println((Long.valueOf("1554704785526")<System.currentTimeMillis()));
+		try {
+			String url = String.format(Api.leftTicketByCdn, "112.90.133.253","query","2019-04-07","BJP","TJP");
+			System.out.println(url);
+			HttpGet get = new HttpGet(url);
+			get.setHeader("Host", HeaderSotre.host);
+			get.addHeader("User-Agent", HeaderSotre.userAgent);
+			get.setHeader("X-Requested-With", "XMLHttpRequest");
+			get.setHeader("Referer", "https://kyfw.12306.cn/otn/leftTicket/init");
+			CloseableHttpResponse re = HttpClientUtil.getClient().execute(get);
+			String reuslt = EntityUtils.toString(re.getEntity());
+			System.out.println(reuslt);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	
 	}
 	
 	
-	 public static int compare_date(String DATE1, String DATE2) {
-	        
-	        
-	        DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-	        try {
-	            Date dt1 = df.parse(DATE1);
-	            Date dt2 = df.parse(DATE2);
-	            if (dt1.getTime() > dt2.getTime()) {
-	                System.out.println("dt1 在dt2前");
-	                return 1;
-	            } else if (dt1.getTime() < dt2.getTime()) {
-	                System.out.println("dt1在dt2后");
-	                return -1;
-	            } else {
-	                return 0;
-	            }
-	        } catch (Exception exception) {
-	            exception.printStackTrace();
-	        }
-	        return 0;
-	    }
-
+	
 	
 }
