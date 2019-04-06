@@ -10,7 +10,7 @@ public interface Api {
 
 	String baseUrl = "https://kyfw.12306.cn";
 
-	String leftTicketByCdn = "http://%s/otn/%s?leftTicketDTO.train_date=%s&leftTicketDTO.from_station=%s&leftTicketDTO.to_station=%s&purpose_codes=ADULT";
+	String leftTicketByCdn = "https://%s/otn/%s?leftTicketDTO.train_date=%s&leftTicketDTO.from_station=%s&leftTicketDTO.to_station=%s&purpose_codes=ADULT";
 
 	String leftTicket = baseUrl
 			+ "/otn/%s?leftTicketDTO.train_date=%s&leftTicketDTO.from_station=%s&leftTicketDTO.to_station=%s&purpose_codes=ADULT";
