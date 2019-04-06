@@ -128,13 +128,12 @@ public class Login {
 				logger.info("验证码获取完成！");
 
 				logger.info("准备开始自动识别验证码！");
-
+				
 				String position = ORC.getImgPositionBy360(captchaImage);
 				if (StringUtils.isBlank(position)) {
 					logger.info("使用360验证码识别打码失败，启用AI验证码识别！");
 					position = ORC.getImgPositionByAi(captchaImage);
 				}
-				logger.info("使用360验证码识别打码成功！");
 				if (StringUtils.isBlank(position)) {
 					logger.info("登录验证码打码失败");
 					return false;
