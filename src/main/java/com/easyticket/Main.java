@@ -101,27 +101,6 @@ public class Main {
 
 	}
 
-	//https://kyfw.12306.cn/otn/leftTicket/query?
-	//leftTicketDTO.train_date=2019-04-07&leftTicketDTO.from_station=BJP&leftTicketDTO.to_station=TJP&purpose_codes=ADULT
-	public static void main(String[] args) {
-		try {
-			String url = String.format(Api.leftTicketByCdn, "112.90.133.253","query","2019-04-07","BJP","TJP");
-			System.out.println(url);
-			HttpGet get = new HttpGet(url);
-			get.setHeader("Host", HeaderSotre.host);
-			get.addHeader("User-Agent", HeaderSotre.userAgent);
-			get.setHeader("X-Requested-With", "XMLHttpRequest");
-			get.setHeader("Referer", "https://kyfw.12306.cn/otn/leftTicket/init");
-			CloseableHttpResponse re = HttpClientUtil.getClient().execute(get);
-			String reuslt = EntityUtils.toString(re.getEntity());
-			System.out.println(reuslt);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	
-	}
-	
-	
-	
+
 	
 }

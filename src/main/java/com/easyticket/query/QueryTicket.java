@@ -153,6 +153,7 @@ public class QueryTicket implements Runnable{
 		}
 
 		String url = String.format(Api.leftTicketByCdn, cdn, Config.getQueryUrl(), date, left, arrive);
+	
 		try {
 			HttpGet httpget = new HttpGet(url);
 			httpget.setHeader("Host", HeaderSotre.host);
