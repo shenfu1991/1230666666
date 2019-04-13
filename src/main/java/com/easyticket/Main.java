@@ -1,46 +1,21 @@
 package com.easyticket;
 
 import java.io.File;
-import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
-import com.easyticket.book.TicketBook;
 import com.easyticket.cdn.CdnManage;
 import com.easyticket.cdn.CheckCdn;
-import com.easyticket.core.Api;
-import com.easyticket.core.BookQueue;
 import com.easyticket.core.Config;
 import com.easyticket.core.Device;
-import com.easyticket.core.HeaderSotre;
 import com.easyticket.core.InitLeftQueryUrl;
 import com.easyticket.core.SeatType;
-import com.easyticket.job.CheckLogin;
 import com.easyticket.query.QueryTicket;
 import com.easyticket.station.Stations;
 import com.easyticket.thread.SimpleThreadLocalPool;
 import com.easyticket.user.Login;
 import com.easyticket.util.DateUtil;
-import com.easyticket.util.HttpClientUtil;
 import com.jfinal.kit.FileKit;
-import com.jfinal.kit.PropKit;
 
 public class Main {
 	private static final Logger logger = Logger.getLogger(Main.class);
@@ -59,7 +34,7 @@ public class Main {
 		InitLeftQueryUrl.init();
 		// 初始化席别代码
 		SeatType.inint();
-		//获取动态秘钥
+		// 获取动态秘钥
 		Device.init();
 
 		// 过滤cdn
@@ -101,6 +76,4 @@ public class Main {
 
 	}
 
-
-	
 }

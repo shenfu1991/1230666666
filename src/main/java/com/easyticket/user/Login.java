@@ -1,13 +1,10 @@
 package com.easyticket.user;
 
 import java.net.URI;
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Consts;
@@ -21,19 +18,16 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.methods.RequestBuilder;
 import org.apache.http.cookie.Cookie;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.cookie.BasicClientCookie;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.easyticket.Main;
 import com.easyticket.core.Api;
 import com.easyticket.core.Config;
 import com.easyticket.core.CookieStore;
@@ -42,7 +36,6 @@ import com.easyticket.core.ORC;
 import com.easyticket.util.DateUtil;
 import com.easyticket.util.FileUtil;
 import com.easyticket.util.HttpClientUtil;
-import com.jfinal.kit.PropKit;
 
 public class Login {
 
@@ -58,13 +51,13 @@ public class Login {
 	 * @return
 	 */
 	public boolean login() {
-		
+
 		if (!DateUtil.isNormalTime()) {
 			logger.info("维护时间，暂停查询");
 			return false;
 		}
-		
-		if(StringUtils.isBlank(Config.getUserName()) || StringUtils.isBlank(Config.getPassword())){
+
+		if (StringUtils.isBlank(Config.getUserName()) || StringUtils.isBlank(Config.getPassword())) {
 			logger.info("账号或者密码未填写。");
 			System.exit(0);
 		}
@@ -72,8 +65,7 @@ public class Login {
 		getAllCookies(cookieStore);
 		// 是否需要验证码登录
 		boolean is_login_passCode = false;
-	
-		
+
 		Header[] headers = new BasicHeader[3];
 		headers[0] = new BasicHeader("User-Agent", HeaderSotre.userAgent);
 		headers[1] = new BasicHeader("Host", HeaderSotre.host);
@@ -128,7 +120,7 @@ public class Login {
 				logger.info("验证码获取完成！");
 
 				logger.info("准备开始自动识别验证码！");
-				
+
 				String position = ORC.getImgPositionBy360(captchaImage);
 				if (StringUtils.isBlank(position)) {
 					logger.info("使用360验证码识别打码失败，启用AI验证码识别！");
@@ -203,7 +195,7 @@ public class Login {
 				HttpEntity loginEntity = loginResponse.getEntity();
 
 				String loginResultS = EntityUtils.toString(loginEntity);
-		
+
 				JSONObject loginResult = JSON.parseObject(loginResultS);
 				if (!"0".equals(loginResult.getString("result_code"))) {
 					logger.info(
@@ -386,7 +378,7 @@ public class Login {
 				logger.info("用户登录成功");
 				// 将成功的cookie写入文件
 				writeCookies2File();
-			
+
 				return true;
 			} catch (Exception e) {
 				logger.error(e.getMessage(), e);
@@ -474,9 +466,6 @@ public class Login {
 
 	}
 
-	
-
-
 	/**
 	 * 将cookie读取到cookiestore 查看是否可以用
 	 */
@@ -500,7 +489,7 @@ public class Login {
 		List<Cookie> cookies = cookieStore.getCookies();
 		if (!cookies.isEmpty()) {
 			for (int i = 0; i < cookies.size(); i++) {
-				 System.out.println("- " + cookies.get(i).toString());
+				// System.out.println("- " + cookies.get(i).toString());
 			}
 		}
 	}

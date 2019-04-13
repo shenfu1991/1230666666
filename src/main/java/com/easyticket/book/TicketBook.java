@@ -26,19 +26,12 @@
  */
 package com.easyticket.book;
 
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.net.URI;
-import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -48,33 +41,21 @@ import java.util.concurrent.BlockingQueue;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.swing.ImageIcon;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.SwingConstants;
-
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.Consts;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.methods.RequestBuilder;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.message.BasicHeader;
-import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.easyticket.Main;
-import com.easyticket.cdn.CdnManage;
 import com.easyticket.core.Api;
 import com.easyticket.core.BookQueue;
 import com.easyticket.core.Config;
@@ -83,19 +64,16 @@ import com.easyticket.core.HeaderSotre;
 import com.easyticket.core.ORC;
 import com.easyticket.core.SeatType;
 import com.easyticket.notice.Notice;
-import com.easyticket.thread.SimpleThreadLocalPool;
+import com.easyticket.station.Stations;
 import com.easyticket.user.Login;
 import com.easyticket.util.DateUtil;
 import com.easyticket.util.HttpClientUtil;
-
 
 /**
  * 下单参考 ：https://www.jianshu.com/p/6b1f94e32713 和
  * http://www.cnblogs.com/small-bud/p/7967650.html
  */
-public class TicketBook implements Runnable{
-
-	
+public class TicketBook implements Runnable {
 
 	private BlockingQueue<Map<String, String>> queue = BookQueue.bookQueue;
 	private CloseableHttpClient httpclient;
@@ -105,13 +83,9 @@ public class TicketBook implements Runnable{
 	private String bookRancode = "";
 	private static Logger logger = Logger.getLogger(TicketBook.class);
 
-
-	
-
 	public void resetHeaders() {
 		this.headers = new BasicHeader[8];
-		this.headers[0] = new BasicHeader("User-Agent",
-				HeaderSotre.userAgent);
+		this.headers[0] = new BasicHeader("User-Agent", HeaderSotre.userAgent);
 		this.headers[1] = new BasicHeader("Host", HeaderSotre.host);
 		this.headers[2] = new BasicHeader("Referer", "https://kyfw.12306.cn/otn/leftTicket/init?linktypeid=dc");
 		this.headers[3] = new BasicHeader("Accept", "*/*");
@@ -121,40 +95,41 @@ public class TicketBook implements Runnable{
 		this.headers[7] = new BasicHeader("Origin", Api.baseUrl);
 	}
 
+	@Override
 	@SuppressWarnings("unchecked")
 	public void run() {
-		
+
 		httpclient = HttpClientUtil.getHttpClient(cookieStore);
 		Login.readFile2Cookie();
-		
+
 		Login login = new Login();
 		String orderId = "";
 		Map<String, String> map = null;
 		Map<String, String> blacklistMap = Config.getBlacklistMap();
 		try {
-			
-			while (orderId.equals("") && (map = queue.take()) != null) {
-				
-				resetHeaders();
-				this.headers[2] = new BasicHeader("Referer", Api.queryInitPage+"?linktypeid=dc");
 
-				logger.info("开始预定 ，车次："+map.get("chehao"));
-				
+			while (orderId.equals("") && (map = queue.take()) != null) {
+
+				resetHeaders();
+				this.headers[2] = new BasicHeader("Referer", Api.queryInitPage + "?linktypeid=dc");
+
+				logger.info("开始预定 ，车次：" + map.get("chehao"));
+
 				Map checUser = Login.checkUser();
 
-				if(checUser.get("data")!=null && !JSON.parseObject(checUser.get("data").toString()).getBooleanValue("flag")){
+				if (checUser.get("data") != null
+						&& !JSON.parseObject(checUser.get("data").toString()).getBooleanValue("flag")) {
 					Login.resetCookiesFile();
 					Login.resetCookieStore();
 					headers = new BasicHeader[3];
-					headers[0] = new BasicHeader("User-Agent",
-							HeaderSotre.userAgent);
+					headers[0] = new BasicHeader("User-Agent", HeaderSotre.userAgent);
 					headers[1] = new BasicHeader("Host", HeaderSotre.host);
 					headers[2] = new BasicHeader("Referer", "https://kyfw.12306.cn/otn/index/init");
 					new Login().login();
 				}
-				
+
 				// 校验是否登陆 略
-				int flag = subOrder(map.get("secret"),map.get("cdn"));
+				int flag = subOrder(map.get("secret"), map.get("cdn"));
 				if (flag == 1) { // 跳转到提交订单页
 
 					String token = initDc();// globalRepeatSubmitToken,key_check_isChange
@@ -191,7 +166,7 @@ public class TicketBook implements Runnable{
 								logger.info("使用360验证码识别打码成功！");
 								if (StringUtils.isBlank(position)) {
 									logger.info("登录验证码打码失败");
-									
+
 								}
 
 								// 校验验证码
@@ -239,18 +214,17 @@ public class TicketBook implements Runnable{
 							continue redo;
 						}
 					}
-					
-					
+
 					// getQueue 略
-					String queueCount =  getQueueCount(globalRepeatSubmitToken, map);
-					if(queueCount.equals("N")){
+					String queueCount = getQueueCount(globalRepeatSubmitToken, map);
+					if (queueCount.equals("N")) {
 						String chehao = map.get("chehao");
 						String tobuySeat = map.get("toBuySeat");
-						blacklistMap.put(chehao + "_" + tobuySeat,DateUtil.getDate("yyyyMMddHHmmss"));
-						logger.info(String.format("当前车次%s  排队人数已经超过余票张数，加入小黑屋！",  map.get("chehao")));
-						
+						blacklistMap.put(chehao + "_" + tobuySeat, DateUtil.getDate("yyyyMMddHHmmss"));
+						logger.info(String.format("当前车次%s  排队人数已经超过余票张数，加入小黑屋！", map.get("chehao")));
+
 						Main.canRun = true;
-						return ;
+						return;
 					}
 					// 确认订单信息
 					confirmSingle(globalRepeatSubmitToken, key_check_isChange, map.get("toBuySeat"), map);
@@ -258,60 +232,56 @@ public class TicketBook implements Runnable{
 					// 进入排队等待
 					orderId = waitOrder(globalRepeatSubmitToken);
 					orderId = orderId.equals("null") ? "" : orderId;
-					
+
 					if (StringUtils.isNoneBlank(orderId)) {
 						// 订票成功 退出程序
-						logger.info(String.format("购票成功，订单Id：%s,赶紧支付去吧",  orderId));
-						//发送语音通知
-						new Notice().run(String.format("code1:%s,code2:%s,code3:%s,code4:%s", map.get("start_train_date"),map.get("fromStationTelecode"),map.get("toStationTelecode"),map.get("chehao")));
+						logger.info(String.format("购票成功，订单Id：%s,赶紧支付去吧", orderId));
+						// 发送语音通知
+						new Notice().run(String.format("code1:%s,code2:%s,code3:%s,code4:%s",
+								map.get("start_train_date"), Stations.getStation(map.get("fromStationTelecode")),
+								Stations.getStation(map.get("toStationTelecode")), map.get("chehao")));
 						System.exit(0);
 					} else {
 						Main.canRun = true;
-						return ;
+						return;
 
 					}
-				}
-				else if (flag == 2) {
-					
+				} else if (flag == 2) {
+
 					String chehao = map.get("chehao");
 					String tobuySeat = map.get("toBuySeat");
-					blacklistMap.put(chehao + "_" + tobuySeat,DateUtil.getDate("yyyyMMddHHmmss"));
-		
+					blacklistMap.put(chehao + "_" + tobuySeat, DateUtil.getDate("yyyyMMddHHmmss"));
+
 					logger.info(String.format("点击预定按钮失败，%s车次加入小黑屋！", map.get("chehao")));
-					
-				
+
 					Map checUserLogin = Login.checkUser();
 
-					if(checUserLogin.get("data")!=null && !JSON.parseObject(checUserLogin.get("data").toString()).getBooleanValue("flag")){
+					if (checUserLogin.get("data") != null
+							&& !JSON.parseObject(checUserLogin.get("data").toString()).getBooleanValue("flag")) {
 						Login.resetCookiesFile();
 						Login.resetCookieStore();
 						headers = new BasicHeader[3];
-						headers[0] = new BasicHeader("User-Agent",
-								HeaderSotre.userAgent);
+						headers[0] = new BasicHeader("User-Agent", HeaderSotre.userAgent);
 						headers[1] = new BasicHeader("Host", HeaderSotre.host);
 						headers[2] = new BasicHeader("Referer", "https://kyfw.12306.cn/otn/index/init");
 						new Login().login();
 					}
-					
+
 					Main.canRun = true;
-					return ;
+					return;
 				}
 
 			}
-			
+
 			Thread.sleep(200L);
 		} catch (Exception e) {
 			// e.printStackTrace();
 			logger.error("预定时出错", e);
 			Main.canRun = true;
-			return ;
+			return;
 		}
-	
 
 	}
-
-	
-	
 
 	public void resetRancode() {
 		this.bookRancode = "";
@@ -326,10 +296,9 @@ public class TicketBook implements Runnable{
 		CloseableHttpResponse response = null;
 		List<Map<String, String>> users = null;
 		try {
-			HttpUriRequest checkCode = RequestBuilder.post()
-					.setUri(new URI(Api.getPassengerDTOs))
-					.addHeader(headers[0]).addHeader(headers[1]).addHeader(headers[2]).addHeader(headers[3])
-					.addHeader(headers[4]).addHeader(headers[5]).addHeader(headers[6]).addHeader(headers[7])
+			HttpUriRequest checkCode = RequestBuilder.post().setUri(new URI(Api.getPassengerDTOs)).addHeader(headers[0])
+					.addHeader(headers[1]).addHeader(headers[2]).addHeader(headers[3]).addHeader(headers[4])
+					.addHeader(headers[5]).addHeader(headers[6]).addHeader(headers[7])
 					.addParameter("REPEAT_SUBMIT_TOKEN", token).addParameter("_json_att", "").build();
 			response = httpclient.execute(checkCode);
 
@@ -340,9 +309,8 @@ public class TicketBook implements Runnable{
 			rsmap = JSON.parseObject(responseBody, Map.class);
 			if (rsmap.get("status").toString().equalsIgnoreCase("true")) {
 				Map<String, Object> dataMap = (Map<String, Object>) rsmap.get("data");
-				
+
 				users = (List<Map<String, String>>) dataMap.get("normal_passengers");
-			
 
 			} else {
 				logger.error("获取用户乘客信息失败");
@@ -360,10 +328,7 @@ public class TicketBook implements Runnable{
 		return users;
 	}
 
-
-
-	
-	public synchronized int subOrder(String secretStr,String cdnIP) {
+	public synchronized int subOrder(String secretStr, String cdnIP) {
 		CloseableHttpResponse response = null;
 		Login.getAllCookies(cookieStore);
 		try {
@@ -374,21 +339,22 @@ public class TicketBook implements Runnable{
 			headers[0] = new BasicHeader("User-Agent", HeaderSotre.userAgent);
 			headers[1] = new BasicHeader("Host", HeaderSotre.host);
 			headers[2] = new BasicHeader("Referer", "https://kyfw.12306.cn/otn/leftTicket/init?linktypeid=dc");
-			
+
 			headers[4] = new BasicHeader("Origin", Api.baseUrl);
 			headers[3] = new BasicHeader("X-Requested-With", "XMLHttpRequest");
-			
-			
-				//String.format("http://%s/otn/leftTicket/submitOrderRequest", cdnIP)
+
+			// String.format("http://%s/otn/leftTicket/submitOrderRequest",
+			// cdnIP)
 			String url = Api.submitOrderRequest;
-			//String url = String.format("http://%s/otn/leftTicket/submitOrderRequest", cdnIP);
-			HttpUriRequest checkUser = RequestBuilder.post()
-					.setUri(new URI(url))
+			// String url =
+			// String.format("http://%s/otn/leftTicket/submitOrderRequest",
+			// cdnIP);
+			HttpUriRequest checkUser = RequestBuilder.post().setUri(new URI(url))
 					// .setUri(new
 					// URI("https://"+queryIp+"/otn/leftTicket/submitOrderRequest"))
 					.addHeader(headers[0]).addHeader(headers[1]).addHeader(headers[2]).addHeader(headers[3])
-					.addHeader(headers[4])
-					.addParameter("back_train_date", getToday()).addParameter("purpose_codes", "ADULT")
+					.addHeader(headers[4]).addParameter("back_train_date", getToday())
+					.addParameter("purpose_codes", "ADULT")
 					.addParameter("query_from_station_name", URLEncoder.encode(Config.getStationLeft(), "utf-8"))
 					.addParameter("query_to_station_name", URLEncoder.encode(Config.getStationArrive(), "utf-8"))
 					.addParameter("secretStr", secretStr).addParameter("tour_flag", "dc")
@@ -417,7 +383,7 @@ public class TicketBook implements Runnable{
 						System.exit(0);
 					}
 				} else {
-					
+
 					logger.info("预定时候出错了：" + responseBody);
 					return 2;
 				}
@@ -436,12 +402,13 @@ public class TicketBook implements Runnable{
 		}
 		return 0;
 	}
-	
+
 	public String getToday() {
 		SimpleDateFormat shortSdf = new SimpleDateFormat("yyyy-MM-dd");
 		Calendar cal = Calendar.getInstance();
 		return shortSdf.format(cal.getTime());
 	}
+
 	/**
 	 * 进入下单页面
 	 *
@@ -452,8 +419,7 @@ public class TicketBook implements Runnable{
 		String token = "";
 		String responseBody = "";
 		try {
-			HttpUriRequest confirm = RequestBuilder.post()
-					.setUri(Api.initDc).addHeader(headers[0])
+			HttpUriRequest confirm = RequestBuilder.post().setUri(Api.initDc).addHeader(headers[0])
 					.addHeader(headers[1]).addHeader(headers[2]).addHeader(headers[3]).addHeader(headers[4])
 					.addHeader(headers[5]).addHeader(headers[6]).addHeader(headers[7]).addParameter("_json_att", "")
 					.build();
@@ -506,8 +472,8 @@ public class TicketBook implements Runnable{
 		String rs = "X";
 		String responseBody = "";
 		try {
-			//seat = seat.replaceAll("一等座", "一等").replaceAll("二等座", "二等");
-		
+			// seat = seat.replaceAll("一等座", "一等").replaceAll("二等座", "二等");
+
 			List<Map<String, String>> userList = getPassenger("");
 			String[] users = Config.getMenbers();
 			String oldPassengerStr = "";// 姓名，证件类别，证件号码，用户类型
@@ -529,8 +495,7 @@ public class TicketBook implements Runnable{
 			 * whatsSelect 1 成人票 0：学生票 tour_flag dc 单程
 			 * 
 			 */
-			HttpUriRequest checkOrder = RequestBuilder.post()
-					.setUri(new URI(Api.checkOrderInfo)).addHeader(headers[0])
+			HttpUriRequest checkOrder = RequestBuilder.post().setUri(new URI(Api.checkOrderInfo)).addHeader(headers[0])
 					.addHeader(headers[1]).addHeader(headers[2]).addHeader(headers[3]).addHeader(headers[4])
 					.addHeader(headers[5]).addHeader(headers[6])
 					.addParameter("bed_level_order_num", "000000000000000000000000000000")
@@ -602,15 +567,14 @@ public class TicketBook implements Runnable{
 		CloseableHttpResponse response = null;
 		String responseBody = "", rs = "";
 		try {
-			HttpUriRequest confirm = RequestBuilder.post()
-					.setUri(new URI(Api.getQueueCount)).addHeader(headers[0])
+			HttpUriRequest confirm = RequestBuilder.post().setUri(new URI(Api.getQueueCount)).addHeader(headers[0])
 					.addHeader(headers[1]).addHeader(headers[2]).addHeader(headers[3]).addHeader(headers[4])
 					.addHeader(headers[5]).addHeader(headers[6])
 					.addParameter("fromStationTelecode", map.get("fromStationTelecode"))
 					.addParameter("toStationTelecode", map.get("toStationTelecode"))
 					.addParameter("leftTicket", map.get("leftTicket")).addParameter("purpose_codes", "00")
 					.addParameter("REPEAT_SUBMIT_TOKEN", token)
-					.addParameter("seatType",SeatType.getSeat(map.get("toBuySeat")))
+					.addParameter("seatType", SeatType.getSeat(map.get("toBuySeat")))
 					.addParameter("stationTrainCode", map.get("chehao"))
 					.addParameter("train_date", getGMT(Config.getStationDate()))// 时间格式待定
 																				// Sun+Feb+25+2018+00:00:00+GMT+0800
@@ -627,10 +591,10 @@ public class TicketBook implements Runnable{
 				Map<String, Object> rsmap = JSON.parseObject(responseBody, Map.class);
 				if (rsmap.get("status").toString().equals("true")) {
 					JSONObject data = JSON.parseObject(rsmap.get("data").toString());
-					if(data.getBooleanValue("op_2")){
-					
+					if (data.getBooleanValue("op_2")) {
+
 						return "N";
-					}else{
+					} else {
 						return "Y";
 					}
 				}
@@ -686,7 +650,7 @@ public class TicketBook implements Runnable{
 		CloseableHttpResponse response = null;
 		String responseBody = "";
 		try {
-			
+
 			List<Map<String, String>> userList = getPassenger("");
 			String[] users = Config.getMenbers();
 			String oldPassengerStr = "";// 姓名，证件类别，证件号码，用户类型
@@ -705,8 +669,7 @@ public class TicketBook implements Runnable{
 			passengerTicketStr = passengerTicketStr.endsWith("_")
 					? passengerTicketStr.substring(0, passengerTicketStr.length() - 1) : passengerTicketStr;
 
-			HttpUriRequest confirm = RequestBuilder.post()
-					.setUri(new URI(Api.confirmSingleForQueue))
+			HttpUriRequest confirm = RequestBuilder.post().setUri(new URI(Api.confirmSingleForQueue))
 					.addHeader(headers[0]).addHeader(headers[1]).addHeader(headers[2]).addHeader(headers[3])
 					.addHeader(headers[4]).addHeader(headers[5]).addHeader(headers[6]).addParameter("choose_seats", "")
 					.addParameter("dwAll", "N").addParameter("key_check_isChange", key_check_isChange)
@@ -730,24 +693,24 @@ public class TicketBook implements Runnable{
 																		// false为失败
 																		// 需要查看errMsg
 					if (subStatus.equals("true")) {
-						
+
 						System.out.println("确认提交订单成功" + responseBody);
 						logger.info("确认提交订单成功");
 					} else {
 						String errMsg = data.get("errMsg") + "";
-						logger.info("确认提交订单失败" + errMsg );
+						logger.info("确认提交订单失败" + errMsg);
 					}
 				} else {
-					
-					logger.info("确认提交订单失败" + responseBody );
+
+					logger.info("确认提交订单失败" + responseBody);
 				}
 
 			} else {
-				logger.info("确认提交订单失败" + responseBody );
+				logger.info("确认提交订单失败" + responseBody);
 			}
 
 		} catch (Exception e) {
-			logger.info("确认提交订单失败" + responseBody );
+			logger.info("确认提交订单失败" + responseBody);
 			e.printStackTrace();
 		} finally {
 			try {
@@ -765,12 +728,13 @@ public class TicketBook implements Runnable{
 		try {
 
 			// while(orderId.equals("")){
-			while (Integer.parseInt(waitTime) >= 0) { 
-				String url = String.format(Api.queryOrderWaitTime+"?random=%s&tourFlag=dc&_json_att=&REPEAT_SUBMIT_TOKEN=", System.currentTimeMillis(),token);
-				HttpUriRequest waitOrder = RequestBuilder.get()
-						.setUri(url)
-						.addHeader(headers[0]).addHeader(headers[1]).addHeader(headers[2]).addHeader(headers[3])
-						.addHeader(headers[4]).addHeader(headers[5]).addHeader(headers[6]).build();
+			while (Integer.parseInt(waitTime) >= 0) {
+				String url = String.format(
+						Api.queryOrderWaitTime + "?random=%s&tourFlag=dc&_json_att=&REPEAT_SUBMIT_TOKEN=",
+						System.currentTimeMillis(), token);
+				HttpUriRequest waitOrder = RequestBuilder.get().setUri(url).addHeader(headers[0]).addHeader(headers[1])
+						.addHeader(headers[2]).addHeader(headers[3]).addHeader(headers[4]).addHeader(headers[5])
+						.addHeader(headers[6]).build();
 
 				CloseableHttpResponse response = httpclient.execute(waitOrder);
 				HttpEntity entity = response.getEntity();
@@ -792,7 +756,7 @@ public class TicketBook implements Runnable{
 				}
 			}
 			if (orderId.equals("")) {
-				
+
 				logger.info("获取订单号失败：" + message);
 			}
 		} catch (Exception e) {
