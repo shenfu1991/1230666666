@@ -1,25 +1,13 @@
 package com.easyticket.config;
 
-import java.util.Timer;
-
 import org.apache.log4j.Logger;
 
 import com.easyticket.Main;
-import com.easyticket.cdn.CdnManage;
-import com.easyticket.cdn.CheckCdn;
 import com.easyticket.controller.IndexController;
-import com.easyticket.core.InitLeftQueryUrl;
 import com.easyticket.job.BlacklistJob;
 import com.easyticket.job.CheckLogin;
-
-import com.easyticket.job.ShuaPiaoJob;
 import com.easyticket.job.StartTicketJob;
 import com.easyticket.job.StopTicketJob;
-import com.easyticket.query.QueryTicket;
-import com.easyticket.station.Stations;
-import com.easyticket.thread.SimpleThreadLocalPool;
-import com.easyticket.user.Login;
-import com.easyticket.util.HttpClientUtil;
 import com.jfinal.config.Constants;
 import com.jfinal.config.Handlers;
 import com.jfinal.config.Interceptors;
@@ -29,11 +17,11 @@ import com.jfinal.config.Routes;
 import com.jfinal.ext.handler.ContextPathHandler;
 import com.jfinal.json.JFinalJsonFactory;
 import com.jfinal.kit.PropKit;
-import com.jfinal.plugin.cron4j.Cron4jPlugin;
 import com.jfinal.plugin.druid.DruidPlugin;
 import com.jfinal.plugin.quartz.QuartzPlugin;
 import com.jfinal.render.ViewType;
 import com.jfinal.template.Engine;
+import com.jfplugin.mail.MailPlugin;
 
 public class AppConfig extends JFinalConfig {
 
@@ -80,6 +68,7 @@ public class AppConfig extends JFinalConfig {
 		quartzPlugin.addJob(new StartTicketJob().cron("0 0 6 * * ?"));
 		quartzPlugin.addJob(new StopTicketJob().cron("0 0 23 * * ?"));
 		me.add(quartzPlugin);
+		me.add(new MailPlugin(PropKit.getProp().getProperties()));
 	}
 
 	@Override

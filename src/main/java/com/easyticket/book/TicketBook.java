@@ -63,6 +63,7 @@ import com.easyticket.core.CookieStore;
 import com.easyticket.core.HeaderSotre;
 import com.easyticket.core.ORC;
 import com.easyticket.core.SeatType;
+import com.easyticket.notice.EmailNotice;
 import com.easyticket.notice.Notice;
 import com.easyticket.station.Stations;
 import com.easyticket.user.Login;
@@ -238,8 +239,15 @@ public class TicketBook implements Runnable {
 						logger.info(String.format("购票成功，订单Id：%s,赶紧支付去吧", orderId));
 						// 发送语音通知
 						new Notice().run(String.format("code1:%s,code2:%s,code3:%s,code4:%s",
-								map.get("start_train_date"), Stations.getStation(map.get("fromStationTelecode")),
-								Stations.getStation(map.get("toStationTelecode")), map.get("chehao")));
+								map.get("start_train_date"), Stations.getStationByCode(map.get("fromStationTelecode")),
+								Stations.getStationByCode(map.get("toStationTelecode")), map.get("chehao")));
+
+						// 发送邮件通知
+						String content = "恭喜您抢到%s从%s开往%s的%s次列车，请去官网及时支付！ ";
+						new EmailNotice().run(String.format(content, map.get("start_train_date"),
+								Stations.getStationByCode(map.get("fromStationTelecode")),
+								Stations.getStationByCode(map.get("toStationTelecode")), map.get("chehao")));
+
 						System.exit(0);
 					} else {
 						Main.canRun = true;

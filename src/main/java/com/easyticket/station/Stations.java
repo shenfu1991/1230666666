@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
+import com.alibaba.fastjson.JSON;
 import com.easyticket.util.HttpClientUtil;
 
 /**
@@ -19,8 +20,15 @@ public class Stations {
 
 	public static Map<String, String> stationMap = new HashMap<>();
 
-	public static String getStation(String stationsName) {
+	public static Map<String, String> stationMap2 = new HashMap<>();
+
+	public static String getStationByName(String stationsName) {
 		return stationMap.get(stationsName);
+
+	}
+
+	public static String getStationByCode(String stationsCode) {
+		return stationMap2.get(stationsCode);
 
 	}
 
@@ -46,8 +54,14 @@ public class Stations {
 		}
 		for (String[] strings : str) {
 			stationMap.put(strings[0], strings[1]);
+			stationMap2.put(strings[1], strings[0]);
 		}
 		logger.info("初始化车站信息完成");
+	}
+
+	public static void main(String[] args) {
+		Stations.init();
+		System.out.println(JSON.toJSONString(stationMap2));
 	}
 
 }

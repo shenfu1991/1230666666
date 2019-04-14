@@ -127,12 +127,12 @@ public class QueryTicket implements Runnable {
 
 	private String query(String cdn, RequestConfig requestConfig, String date) {
 		httpclient = HttpClientUtil.getHttpClient(cookieStore);
-		String left = Stations.getStation(Config.getStationLeft());
+		String left = Stations.getStationByName(Config.getStationLeft());
 		if (StringUtils.isBlank(left)) {
 			logger.error("出发地错误！");
 		}
 
-		String arrive = Stations.getStation(Config.getStationArrive());
+		String arrive = Stations.getStationByName(Config.getStationArrive());
 
 		if (StringUtils.isBlank(arrive)) {
 			logger.error("目的地错误！");
