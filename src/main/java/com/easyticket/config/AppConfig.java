@@ -1,5 +1,6 @@
 package com.easyticket.config;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
 import com.easyticket.Main;
@@ -68,6 +69,10 @@ public class AppConfig extends JFinalConfig {
 		quartzPlugin.addJob(new StartTicketJob().cron("0 0 6 * * ?"));
 		quartzPlugin.addJob(new StopTicketJob().cron("0 0 23 * * ?"));
 		me.add(quartzPlugin);
+		if (StringUtils.isBlank(PropKit.get("email.notice.mall")) || StringUtils.isBlank(PropKit.get("username"))
+				|| StringUtils.isBlank(PropKit.get("password"))) {
+			return;
+		}
 		me.add(new MailPlugin(PropKit.getProp().getProperties()));
 	}
 
