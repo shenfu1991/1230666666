@@ -122,10 +122,7 @@ public class Login {
 				logger.info("准备开始自动识别验证码！");
 
 				String position = ORC.getImgPositionBy360(captchaImage);
-				if (StringUtils.isBlank(position)) {
-					logger.info("使用360验证码识别打码失败，启用AI验证码识别！");
-					position = ORC.getImgPositionByAi(captchaImage);
-				}
+
 				if (StringUtils.isBlank(position)) {
 					logger.info("登录验证码打码失败");
 					return false;
@@ -172,6 +169,7 @@ public class Login {
 
 			// 需要验证码的登录流程
 			if (is_login_passCode) {
+
 				List<NameValuePair> formparams = new ArrayList<NameValuePair>();
 				formparams.add(new BasicNameValuePair("username", Config.getUserName()));
 				formparams.add(new BasicNameValuePair("password", Config.getPassword()));
@@ -195,7 +193,6 @@ public class Login {
 				HttpEntity loginEntity = loginResponse.getEntity();
 
 				String loginResultS = EntityUtils.toString(loginEntity);
-
 				JSONObject loginResult = JSON.parseObject(loginResultS);
 				if (!"0".equals(loginResult.getString("result_code"))) {
 					logger.info(
@@ -489,7 +486,7 @@ public class Login {
 		List<Cookie> cookies = cookieStore.getCookies();
 		if (!cookies.isEmpty()) {
 			for (int i = 0; i < cookies.size(); i++) {
-				// System.out.println("- " + cookies.get(i).toString());
+				System.out.println("- " + cookies.get(i).toString());
 			}
 		}
 	}

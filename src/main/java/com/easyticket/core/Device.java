@@ -11,9 +11,7 @@ import org.apache.log4j.Logger;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.easyticket.user.Login;
 import com.easyticket.util.HttpClientUtil;
-import com.jfinal.kit.PropKit;
 
 /**
  * 动态秘钥
@@ -50,7 +48,7 @@ public class Device {
 	public static JSONObject getDeviceId() {
 		try {
 			String url = Api.getBrowserDeviceId
-					+ "?algID=IQSHeD5sKI&hashCode=iMN_WocRxaQTKmlJhCyGdiqRFCRQzYUFSclCQeghFGQ&FMQw=0&q4f3=zh-CN&VySQ=FGFf8NTIYKkGSmtsBqJcyw3w1qE4gGC7&VPIf=1&custID=133&VEek=unknown&dzuS=27.0%20r0&yD16=0&EOQP=eea1c671b27b7f53fb4ed098696f3560&lEnu=3232235781&jp76=2a9ca2e12c8435592de6782849e1d973&hAqN=Win32&platform=WEB&ks0Q=774f213411edc297d4bde6fc65ed2d79&TeRS=1042x1920&tOHY=24xx1080x1920&Fvje=i1l1o1s1&q5aJ=-8&wNLf=99115dfb07133750ba677d055874de87&0aew=Mozilla/5.0%20(Windows%20NT%2010.0;%20WOW64)%20AppleWebKit/537.36%20(KHTML,%20like%20Gecko)%20Chrome/69.0.3497.100%20Safari/537.36&E3gR=3b9a90a447b49ae75b3a1d2133d95c8e&timestamp="
+					+ "?algID=vD1jkYaB5k&hashCode=3Jf0OknX0YYFIeEWE5DPCzwMiwNqk-9dctmTTy_7nEY&FMQw=0&q4f3=zh-CN&VPIf=1&custID=133&VEek=unknown&dzuS=32.0%20r0&yD16=0&EOQP=eea1c671b27b7f53fb4ed098696f3560&lEnu=3232235780&jp76=e8eea307be405778bd87bbc8fa97b889&hAqN=Win32&platform=WEB&ks0Q=2955119c83077df58dd8bb7832898892&TeRS=834x1536&tOHY=24xx864x1536&Fvje=i1l1o1s1&q5aJ=-8&wNLf=99115dfb07133750ba677d055874de87&0aew=Mozilla/5.0%20(Windows%20NT%2010.0;%20WOW64)%20AppleWebKit/537.36%20(KHTML,%20like%20Gecko)%20Chrome/56.0.2924.87%20Safari/537.36&E3gR=ed0a124813a73261b73349a4a7f2021f&timestamp="
 					+ System.currentTimeMillis();
 
 			HttpGet get = new HttpGet(url);
