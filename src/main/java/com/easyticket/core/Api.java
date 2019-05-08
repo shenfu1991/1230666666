@@ -28,8 +28,8 @@ public interface Api {
 	String uamtk = baseUrl + "/passport/web/auth/uamtk";
 
 	String uamauthclient = baseUrl + "/otn/uamauthclient";
-	
-	String uamtkStatic = baseUrl+"/passport/web/auth/uamtk-static";
+
+	String uamtkStatic = baseUrl + "/passport/web/auth/uamtk-static";
 
 	String userInfo = baseUrl + "/otn/modifyUser/initQueryUserInfoApi";
 
@@ -55,15 +55,14 @@ public interface Api {
 
 	String initMy12306 = baseUrl + "/otn/index/initMy12306";
 
-	
-	String getBrowserDeviceId = baseUrl+"/otn/HttpZF/logdevice";
-	
-	String loginAysnSuggest = baseUrl+"/otn/login/loginAysnSuggest";
-	
-	String autoSubmitOrderRequest = baseUrl+"/otn/confirmPassenger/autoSubmitOrderRequest";
+	String getBrowserDeviceId = baseUrl + "/otn/HttpZF/logdevice";
+
+	String loginAysnSuggest = baseUrl + "/otn/login/loginAysnSuggest";
+
+	String autoSubmitOrderRequest = baseUrl + "/otn/confirmPassenger/autoSubmitOrderRequest";
 
 	// 360验证码识别
-	String getCheck = "https://12306.jiedanba.cn/api/v2/getCheck";
+	String getCheck = "http://120.27.239.134:9082/api/v2/getCheck";
 
 	String getPositionBy360 = "http://check.huochepiao.360.cn/img_vcode";
 

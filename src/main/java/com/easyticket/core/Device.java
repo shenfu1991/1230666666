@@ -48,7 +48,7 @@ public class Device {
 	public static JSONObject getDeviceId() {
 		try {
 			String url = Api.getBrowserDeviceId
-					+ "?algID=vD1jkYaB5k&hashCode=3Jf0OknX0YYFIeEWE5DPCzwMiwNqk-9dctmTTy_7nEY&FMQw=0&q4f3=zh-CN&VPIf=1&custID=133&VEek=unknown&dzuS=32.0%20r0&yD16=0&EOQP=eea1c671b27b7f53fb4ed098696f3560&lEnu=3232235780&jp76=e8eea307be405778bd87bbc8fa97b889&hAqN=Win32&platform=WEB&ks0Q=2955119c83077df58dd8bb7832898892&TeRS=834x1536&tOHY=24xx864x1536&Fvje=i1l1o1s1&q5aJ=-8&wNLf=99115dfb07133750ba677d055874de87&0aew=Mozilla/5.0%20(Windows%20NT%2010.0;%20WOW64)%20AppleWebKit/537.36%20(KHTML,%20like%20Gecko)%20Chrome/56.0.2924.87%20Safari/537.36&E3gR=ed0a124813a73261b73349a4a7f2021f&timestamp="
+					+ "?algID=DSMUHpqg2c&hashCode=7D2olfNltplDRYYVR5GfyPVdYWm_PQvOWVmvaWUpOJI&FMQw=0&q4f3=zh-CN&VySQ=FGE8-ztrZHjoQKFkw9FzanJmGHUMxCjZ&VPIf=1&custID=133&VEek=unknown&dzuS=29.0%20r0&yD16=0&EOQP=eea1c671b27b7f53fb4ed098696f3560&lEnu=3232235939&jp76=a5b2ffe86c07bdcd9a3445c81d946c92&hAqN=Win32&platform=WEB&ks0Q=d82d0dd98d93e709d91f86348e2a0e86&TeRS=1042x1920&tOHY=24xx1080x1920&Fvje=i1l1o1s1&q5aJ=-8&wNLf=99115dfb07133750ba677d055874de87&0aew=Mozilla/5.0%20(Windows%20NT%2010.0;%20WOW64)%20AppleWebKit/537.36%20(KHTML,%20like%20Gecko)%20Chrome/63.0.3239.132%20Safari/537.36&E3gR=c55529c990fcaabc078c4304eadf4ccb&timestamp="
 					+ System.currentTimeMillis();
 
 			HttpGet get = new HttpGet(url);
