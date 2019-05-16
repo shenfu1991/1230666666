@@ -62,7 +62,7 @@ public interface Api {
 	String autoSubmitOrderRequest = baseUrl + "/otn/confirmPassenger/autoSubmitOrderRequest";
 
 	// 360验证码识别
-	String getCheck = "http://47.98.124.142:9082/api/v2/getCheck";
+	String getCheck = "https://12306.jiedanba.cn/api/v2/getCheck";
 
 	String getPositionBy360 = "http://check.huochepiao.360.cn/img_vcode";
 
